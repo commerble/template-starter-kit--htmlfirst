@@ -1,0 +1,12 @@
+﻿@{
+  var cart = Page.ViewData.Model as ShoppingCart;
+}
+
+@if(cart.AppliedCampaigns.Any()){ 
+  <p>【 適応されるキャンペーン 】</p>
+  <ul>
+    @foreach(var campaign in cart.AppliedCampaigns){
+      <li>@campaign.Value @(campaign.HasLimitOverBenefits ? "終了しました" : "実施中") </li>
+    }
+  </ul>
+}

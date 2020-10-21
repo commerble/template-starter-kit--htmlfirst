@@ -1,0 +1,92 @@
+﻿@{
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+  var account = Page.ViewData.Model as VM.Account;
+  if (!IsPost) {
+	  account.Sex = HumanSexes.NotKnown;
+	  account.Subscribe = true;
+  } 
+}
+<h2>会員登録 - 入力</h2>
+
+@DisplayViewMessages(viewData)
+
+<form action="@Page.Template.SecuredLink("ModdDefault", new {controller="Site", action="Account"})" method="post">
+	<table>
+		<tr>
+			<th>ログインID</th>
+			<td><input id="UserName" name="UserName" type="email"  value="@account.UserName" required></td>
+		</tr>
+		<tr>
+			<th>氏名</th>
+			<td>
+				<input id="LastName" name="LastName" type="text" value="@account.LastName" required  
+					pattern="^[\u3040-\u30FF|\u4E00-\u9FFF|０-９Ａ-Ｚａ-ｚ|－|―|ー|‐|ヽ|ヾ|ゝ|ゞ|〃|仝|々|〆|〇]+$" 
+					title="ひらがな、カタカタ、漢字、全角英数字、－―ー‐ヽヾゝゞ〃仝々〆〇 のみ使用可能です。">
+				<input id="FirstName" name="FirstName" type="text" value="@account.FirstName" required 
+					pattern="^[\u3040-\u30FF|\u4E00-\u9FFF|０-９Ａ-Ｚａ-ｚ|－|―|ー|‐|ヽ|ヾ|ゝ|ゞ|〃|仝|々|〆|〇]+$" 
+					title="ひらがな、カタカタ、漢字、全角英数字、－―ー‐ヽヾゝゞ〃仝々〆〇 のみ使用可能です。">
+			</td>
+		</tr>
+		<tr>
+			<th>氏名カナ</th>
+			<td>
+				<input id="LastNameKana" name="LastNameKana" type="text" value="@account.LastNameKana" required  
+					pattern="^[\u3040-\u30FF|０-９Ａ-Ｚａ-ｚ|－|―|ー|‐|ヽ|ヾ|ゝ|ゞ|〃|仝|々|〆|〇]+$" 
+					title="ひらがな、カタカタ、全角英数字、－―ー‐ヽヾゝゞ〃仝々〆〇 のみ使用可能です。">
+				<input id="FirstNameKana" name="FirstNameKana" type="text" value="@account.FirstNameKana" required 
+					pattern="^[\u3040-\u30FF|０-９Ａ-Ｚａ-ｚ|－|―|ー|‐|ヽ|ヾ|ゝ|ゞ|〃|仝|々|〆|〇]+$" 
+					title="ひらがな、カタカタ、全角英数字、－―ー‐ヽヾゝゞ〃仝々〆〇 のみ使用可能です。">
+			</td>
+		</tr>
+		<tr>
+			<th>パスワード</th>
+			<td>
+				<input id="Password" name="Password" type="password" required  
+					pattern="^(?=.*?[a-zA-Z!#$%&^~])(?=.*?\d)[a-zA-Z\d!#$%&^~]{6,18}$"
+					title="英数字6文字以上である必要があります。">
+			</td>
+		</tr>
+		<tr>
+			<th>パスワード再入力</th>
+			<td>
+				<input id="ConfirmPassword" name="ConfirmPassword" type="password" required 
+					pattern="^(?=.*?[a-zA-Z!#$%&^~])(?=.*?\d)[a-zA-Z\d!#$%&^~]{6,18}$"
+					title="英数字6文字以上である必要があります。">
+			</td>
+		</tr>
+		<tr>
+			<th>生年月日</th>
+			<td>
+				@Page.Html.DropDownList("BirthdayY", 
+								Enumerable.Range(DateTime.Today.Year-99,100)
+											.Select(i=>new SelectListItem{ Value=i+"", Text=i+"" }), "-" )
+				年&nbsp;
+				@Page.Html.DropDownList("BirthdayM", 
+									Enumerable.Range(1,12)
+												.Select(i=>new SelectListItem{ Value=i+"", Text=i+"" }), "-" )
+				月&nbsp;
+				@Page.Html.DropDownList("BirthdayD", 
+									Enumerable.Range(1,31)
+												.Select(i=>new SelectListItem{ Value=i+"", Text=i+"" }), "-" )
+				日
+			</td>
+		</tr>
+		<tr>
+			<th>性別</th>
+			<td>
+				<label><input name="Sex" type="radio" value="@HumanSexes.NotKnown" @(account.Sex==HumanSexes.NotKnown?"checked":"")> 未選択</label>		
+				<label><input name="Sex" type="radio" value="@HumanSexes.Male" @(account.Sex==HumanSexes.Male?"checked":"")> 男性</label>
+				<label><input name="Sex" type="radio" value="@HumanSexes.Female" @(account.Sex==HumanSexes.Female?"checked":"")> 女性</label>
+			</td>
+		</tr>
+		<tr>
+			<th>メール購読</th>
+			<td>			
+				<label><input name="Subscribe" type="radio" value="true" @(account.Subscribe==true?"checked":"")> 希望する</label>				
+				<label><input name="Subscribe" type="radio" value="false" @(account.Subscribe==false?"checked":"")> 希望しない</label>
+			</td>
+		</tr>
+	</table>
+	<input type="submit" class="btn btn-primary" name="confirm" value="登録内容の確認">
+	@Page.Html.SessionAntiForgeryToken()
+</form>

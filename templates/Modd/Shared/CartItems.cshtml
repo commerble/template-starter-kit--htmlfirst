@@ -1,0 +1,62 @@
+﻿@{
+  var cart = Page.ViewData.Model as ShoppingCartBase;
+}
+<table>
+<caption>ご注文内容</caption>
+<thead>
+	<tr>
+		<td>商品番号</td>
+		<td>商品名</td>
+		<td>発売日</td>
+		<td>販売価格<!--/必要ポイント--></td>
+		<td>数量</td>
+		<td>小計</td>
+	</tr>
+</thead>
+<tfoot>
+	<tr>
+		<td>商品合計</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		<td>@PrintPrice(cart.Subtotal)</td>
+	</tr>
+</tfoot>
+<tbody>
+@foreach(var item in cart.ExpandItems) {
+  var productLink = !( item.OrderLineType==OrderLineType.NormalOrder || item.OrderLineType==OrderLineType.SetProductParent); 
+  <tr>
+	  <td >@item.Product.ExternalId</td>
+	  <td>
+      <a href="@(productLink ? "#" : null)" target="_blank">
+      @if (item.ProductName != null) { 
+        @:@item.ProductName
+      } else {
+        @:@item.Product.Name
+      } 
+      </a>
+    </td>
+	  <td>@string.Format("{0:yyyy/MM/dd}", item.Product.ReleaseDate)</td>
+	  <td>@string.Format("{0:#,##0}", Page.Template.GetUnitPriceWithTax(item.Product.ProductId)) 
+        @if (item.IsPointOnly){ 
+          <text>ポイント</text>
+        }else{ 
+          <text>円</text> @((Page.Template.GetUnitPriceWithTax(item.Product.ProductId) == item.Product.UnitPrice) ? "(非課税)" : "(税込)")
+        }
+    </td>
+	  <td>
+		  <p>@item.OrderAmount</p>
+	  </td>
+	  <td>@string.Format("{0:#,##0}",item.LinePrice)
+      @if (item.IsPointOnly){ 
+        <text>ポイント</text>
+      }else{ 
+        <text>円</text> @((Page.Template.GetUnitPriceWithTax(item.Product.ProductId) == item.Product.UnitPrice) ? "(非課税)" : "(税込)")
+      }
+    </td>
+  </tr>
+}
+</tbody>
+
+</table>

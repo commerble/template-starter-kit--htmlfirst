@@ -1,0 +1,45 @@
+﻿@{
+  var notice = Page.ViewData.Model as ReserveRequest; 
+  var stats = new Dictionary<ReserveRequestStatus,string>{
+	  {ReserveRequestStatus.Accept, "未入荷"},
+	  {ReserveRequestStatus.Allocated, "入荷"},
+	  {ReserveRequestStatus.Purchased, "購入済"},
+	  {ReserveRequestStatus.Cancel, "キャンセル"}
+  };
+}
+
+<h2 class="pageHeading">仮予約キャンセルのご確認</h2>
+
+<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Notices", id=notice.ReserveRequestId})" method="post">
+  <p>以下の内容でよろしければ「キャンセルする」ボタンをクリックしてください。仮予約のキャンセルが完了します。</p>
+	<table>
+		<thead>
+			<tr>
+				<td>商品番号</td>
+				<td>商品名</td>
+				<td>発売日</td>
+				<td>販売価格</td>
+				<td>数量</td>
+				<td>状況</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>@notice.Product.ExternalId</td>
+				<td><a href="#" target="_blank">@notice.Product.Name.Trim()</a></td>
+				<td>??</td>
+				<td>@string.Format("{0:#,##0}", Page.Template.GetUnitPriceWithTax(notice.ProductId)) 円(税込)</td>
+				<td>@notice.Amount</td>
+				<td>@stats[notice.Status]</td>
+			</tr>
+		</tbody>
+	</table>
+
+  <div>
+		<a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Notices"})" class="btn btn-default btn-ghost">仮予約一覧へ</a>
+		<input type="submit" class="btn btn-error" value="キャンセルする"/>
+	</div>
+
+  @(Page.Html.HttpMethodOverride("delete"))
+  @(Page.Html.SessionAntiForgeryToken())
+</form>

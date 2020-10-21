@@ -1,0 +1,27 @@
+﻿@{
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages; 
+  var user = Membership.GetUser(Page.User.Identity.Name) as Crosswarp.Modd.Account.Web.ModdMembershipUser;
+}
+@DisplayViewMessages(viewData)
+
+<ul>
+  <li><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Account"})">会員情報</a></li>
+  <li><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Point"})">ポイント</a></li>
+  <li><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Password"})">パスワードの変更</a></li>
+  <li><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Quit"})">退会</a></li>
+</ul>
+
+<h2>@user.UserName&nbsp;さんのマイページ</h2>
+
+<dl>
+  <dt><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="Cart"})">買い物カゴをみる(購入手続き)</a></dt>
+  <dd>注文する内容の確認と購入手続きを行います。</dd>
+  <dt><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History"})">注文履歴・配送状況</a></dt>
+  <dd>注文した商品や配送状況、お届け先・日時の変更、キャンセルをすることができます。</dd>
+  <dt><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Notices"})">仮予約リスト</a></dt>
+  <dd>仮予約中の商品一覧を見ることができます。</dd>
+  <dt><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Favorites"})">お気に入りリスト</a></dt>
+  <dd>お気に入りに登録した商品一覧を見ることが出来ます。</dd>
+  <dt><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Addresses"})">お届け先登録</a></dt>
+  <dd>お届け先の新規登録や変更をすることができます。</dd>
+</dl>

@@ -1,0 +1,27 @@
+﻿@{
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+	var cart = Page.ViewData.Model as ShoppingCartBase;
+	var user = Page.Request.IsAuthenticated ? 
+              Membership.GetUser(Page.User.Identity.Name) as Crosswarp.Modd.Account.Web.ModdMembershipUser : 
+              null;
+  
+  if ((user == null || user.IsAnonymous) && viewData.Errors.Contains("PointUsageShortage		")){ 
+		viewData.Errors.Remove("PointUsageShortage		");
+		foreach( var item in cart.Items){
+			if(Page.Template.GetProductPaymentMethods(item.ProductId).All(p => p==PaymentMethod.PointOnly)){
+				viewData.Errors.Add("SelectedPointItemByGuest	"+item.Product.Name);
+			}
+		}
+  }
+  var returnPath = ((bool?)Page.ViewData["BackToCart"] ?? false) ?
+                    Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="Cart"} ) :
+                    "javascript:history.back();";
+}
+
+<h2>メッセージをご確認願います。</h2>
+
+@DisplayViewMessages(viewData)
+
+<div>
+  <a href="@returnPath" class="btn btn-default">もどる</a>
+</div>

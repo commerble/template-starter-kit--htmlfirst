@@ -1,0 +1,150 @@
+@{
+  var cart = Page.ViewData.Model as ShoppingCartBase;
+  var detail = cart.OrderCustomer.PaymentDetail;
+}
+
+@helper PaymentSelect(ShoppingCartBase cart, PaymentMethod method, string label) {
+	var current = cart.PaymentMethod;
+	if (cart.UsablePaymentMethod.Contains(method)) {
+		<label ic-get-from="#@(method.ToString().ToLower())" ic-target="#paymentmethod">
+			<input type="radio" name="_p" @if(method == current) { <text>checked</text> }>@label
+		</label>
+	}
+}
+
+<template id="cashondelivery">
+    <input type="text" name="PaymentMethod" value="CashOnDelivery" readonly>
+</template>
+
+<template id="cvs">
+    @{ 
+        var cvs = cart.PaymentMethod == PaymentMethod.Cvs;
+        var cvsDict = new Dictionary<string, string> {
+            { "seven",      "セブンイレブン" },
+            { "familymart", "ファミリーマート" },
+            { "lawson",     "ローソン" },
+            { "yamazaki",   "デイリー" },
+        };
+        var cvsDefault = detail == null || !cvsDict.ContainsKey(detail);
+    }
+    <input type="text" name="PaymentMethod" value="Cvs" readonly>
+    @foreach (var c in cvsDict) {
+    <div><label><input type="radio" name="OrderCustomer.PaymentDetail" value="@c.Key" @if(cvs && detail == c.Key || (cvsDefault && c.Key == "seven")){<text>checked</text>}>@c.Value</label></div>
+    }
+</template>
+
+<template id="offsite">
+    <input type="text" name="PaymentMethod" value="Offsite" readonly>
+    <input type="text" name="OrderCustomer.PaymentDetail" value="bank">
+</template>
+
+<template id="offline">
+    <input type="text" name="PaymentMethod" value="Offline" readonly>
+    <input type="text" name="OrderCustomer.PaymentDetail" value="ningyocho">
+</template>
+
+<template id="pointonly">
+    <input type="text" name="PaymentMethod" value="PointOnly" readonly>
+    <input type="text" name="OrderCustomer.PaymentDetail" value="">
+</template>
+
+<template id="token">
+    @if (cart.PaymentMethod == PaymentMethod.Token) {
+        <div ic-get-from="#token-tokenvalue" ic-target="#paymentmethod" ic-trigger-on="load"></div>
+    }	else {
+        <div ic-get-from="#token-cardform"   ic-target="#paymentmethod" ic-trigger-on="load"></div>
+    }
+</template>
+<template id="token-tokenvalue">
+    <input type="text" name="PaymentMethod" value="Token">	
+    <input type="text" name="OrderCustomer.PaymentDetail" value="@(cart.PaymentMethod == PaymentMethod.Token ? detail : "")">
+    <button type="button" ic-get-from="#token-cardform" ic-target="#paymentmethod">再入力</button>
+</template>
+<template id="token-cardform">
+    <input type="text" name="PaymentMethod" value="Token" readonly>	
+    <dl>
+        <dt>カード番号</dt>
+        <dd><input type="text" id="cc-number" autocomplete="cc-number" maxlength="16" value="4000000000000000"></dd>
+        <dd></dd>
+
+        <dt>有効期限</dt>
+        <dd>
+            <select id="cc-exp-month" autocomplete="cc-exp-month">
+                @foreach(var item in cart.SelectCreditCardExpireMonth()) {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+            /
+            <select id="cc-exp-year" autocomplete="cc-exp-year">
+                @foreach(var item in cart.SelectCreditCardExpireYear()) {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </dd>
+        
+        <dt>セキュリティコード</dt>
+        <dd><input id="cc-csc" autocomplete="cc-csc" maxlength="4" value="000"></dd>
+    </dl>
+    <input type="hidden" name="OrderCustomer.PaymentDetail" value="">
+</template>
+
+<template id="external">
+    <input type="text" name="PaymentMethod" value="External" readonly>
+    @{ 
+        var external = cart.PaymentMethod == PaymentMethod.External;
+        var extDict = new Dictionary<string, string> {
+            { "credit",      "クレジットカード" },
+            { "webcvs", "コンビニ" },
+            { "docomo",     "docomo" },
+            { "au",   "au" },
+            { "softbank",   "SoftBank" },
+        };
+        var extDefault = detail == null || !extDict.ContainsKey(detail);
+    }
+    @foreach (var e in extDict) {
+    <div><label><input type="radio" name="OrderCustomer.PaymentDetail" value="@e.Key" @if(external && detail == e.Key || (extDefault && e.Key == "credit")){<text>checked</text>}>@e.Value</label></div>
+    }
+</template>
+
+<table>
+    <caption>お支払い方法</caption>
+    <tbody>
+        <tr>
+            <td>
+                @PaymentSelect(cart, PaymentMethod.CashOnDelivery, "代引き")
+                @PaymentSelect(cart, PaymentMethod.Cvs, "コンビニ")
+                @PaymentSelect(cart, PaymentMethod.Offsite, "オフサイト")
+                @PaymentSelect(cart, PaymentMethod.Offline, "オフライン")
+                @PaymentSelect(cart, PaymentMethod.PointOnly, "ポイント全払い")
+                @PaymentSelect(cart, PaymentMethod.Token, "トークン")
+                @PaymentSelect(cart, PaymentMethod.External, "外部決済")
+            </td>
+        </tr>
+        <tr>
+            <td id="paymentmethod">
+                <div ic-get-from="#@(cart.PaymentMethod.ToString().ToLower())" ic-trigger-on="load" ic-replace-target="true"></div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<script type="text/javascript"> 
+    document.addEventListener('DOMContentLoaded', function() {
+        $('input[type="submit"]').click(function(e) {
+            const method = $('[name="PaymentMethod"]').val();
+            const detail = $('[name="OrderCustomer.PaymentDetail"]').val();
+            if (method === 'Token' && !detail) {
+                e.preventDefault();                
+                const num  = $('#cc-number').val();
+                const MM   = $('#cc-exp-month').val();
+                const yyyy = $('#cc-exp-year').val();
+                const csc  = $('#cc-csc').val();
+                $.ajax('@Href("~/")').then(function() {
+                    const token = btoa(num+MM+yyyy+csc).split('').sort(function(){return 0.5-Math.random()}).join('');
+                    $('[name="OrderCustomer.PaymentDetail"]').val(token);
+                    $('form#payment').submit();
+                });
+            }    
+        })
+    })
+</script>

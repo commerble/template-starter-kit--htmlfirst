@@ -1,0 +1,45 @@
+﻿@if(IsIntercooler) {
+  Layout = null;
+  <p>ログインセッションが切れました。再ログインしてください。</p>
+  <p><a href="@LoginUrl(Href("~/Member/Index"))">ログイン</a></p> 
+} else {
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+  var returnUrl = Page.Request["returnUrl"];
+
+  <h2>ログイン</h2>
+
+  @DisplayViewMessages(viewData)
+
+  <form name="site_login" action="@Page.Template.SecuredLink("ModdDefault", new {controller="Site", action="Login"})" method="post">
+    @Page.Html.Hidden("returnUrl")
+    @Page.Html.SessionAntiForgeryToken()
+    <div class="grid">
+      <div class="cell -5of12">
+        <h3>ログインIDをお持ちの方</h3>
+        <table>
+          <tr>
+            <th>ログインID</th>
+            <td>@Page.Html.TextBox("userName","", new { type="email" })</td>
+          </tr>
+          <tr>
+            <th>パスワード</th>
+            <td>@Page.Html.TextBox("password","", new { type="password" })</td>
+          </tr>
+        </table>
+        <p>
+          <a href="@Page.Url.RouteUrl("ModdDefault", new {controller="Site",action="Account"})" class="btn btn-primary btn-ghost">新規登録</a>
+          <input type="submit" value="ログイン" class="btn btn-primary"/>
+        </p>
+        <p>パスワードを忘れた方は<a href="@Page.Url.RouteUrl("ModdDefault", new {controller="Site",action="Recovery"})">こちら</a></p>
+      </div>
+      <div class="cell -1of12"></div>
+      <div class="cell -6of12">
+        <h3>ユーザー登録せず購入する方</h3>
+        <p>会員登録すると色々便利です。</p>
+        <p>会員登録するとポイント付きます。</p>
+        <p>会員登録すると次回から簡単に買えます。</p>
+        <a href="@Page.Url.RouteUrl("ModdDefault", new {controller="Site",action="NewGuest", returnUrl})" class="btn btn-default btn-ghost">登録せずにレジへ進む</a>
+      </div>
+    </div>
+  </form>
+}

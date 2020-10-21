@@ -1,0 +1,20 @@
+﻿@{
+  var account = Page.ViewData.Model as PointBank.Account;
+	if(account == null){
+		 account = new PointBank.Account();
+	}
+}
+
+<h2>ポイントの確認</h2>
+
+<p>現在の本ポイント</p><span>@Math.Max(account.ActivePoint,0)</span>&nbsp;ポイント
+
+<p>仮ポイント</p><span>@account.TemporaryPoint</span>&nbsp;ポイント
+
+<p>※仮ポイントについては、商品着荷確認後に本ポイントとなります。</p>
+@if (account.ActivePoint > 0) {
+  <p>ポイント有効期限</p><span>@string.Format("{0:yyyy/MM/dd}",account.ExpireDate)</span>
+}
+
+<div><a href="@Page.Url.RouteUrl("ModdDefault", new { Controller="Member",Action="Index"})">マイページトップへ</a></div>
+<div><a href="@Page.Url.RouteUrl("ModdDefault", new { Controller="Order",Action="History"})">注文履歴へ</a></div>

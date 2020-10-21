@@ -1,0 +1,31 @@
+﻿@{
+  var favorite = Page.ViewData.Model as VM.FavoriteAppend; 
+}
+<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Favorites", item=favorite.ProductId} )" method="post">
+
+  <h2>お気に入り登録のご確認</h2>
+	<p>以下の内容でよろしければ「登録する」ボタンをクリックしてください。お気に入り商品を登録します。</p>
+
+	<table>
+		<thead>
+			<tr>
+				<td>商品番号</td>
+				<td>商品名</td>
+				<td>発売日</td>
+				<td>販売価格</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>@favorite.Product.ExternalId</td>
+				<td><a href="#" target="_blank">@favorite.Product.Name.Trim()</a></td>
+				<td>@string.Format("{0:yyyy/MM/dd}",favorite.Product.ReleaseDate)</td>
+        <td>@string.Format("{0:#,##0}", Page.Template.GetUnitPriceWithTax(favorite.ProductId)) 円(税込)</td>
+			</tr>
+		</tbody>
+	</table>
+
+  <input type="submit" value="登録する" class="btn btn-success">
+	<div><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Favorites" })">お気に入り一覧へ</a></div>
+  @(Page.Html.SessionAntiForgeryToken())
+</form>

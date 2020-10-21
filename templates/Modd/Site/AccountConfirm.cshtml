@@ -1,0 +1,48 @@
+﻿@{
+  var account = Page.ViewData.Model as VM.Account;
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages; 
+}
+
+<h2>会員登録 - 確認</h2>
+
+@DisplayViewMessages(viewData)
+
+<form name="site_login" action="@Page.Template.SecuredLink("ModdDefault", new {controller="Site", action="Account"})" method="post">
+	<table>
+		<tr>
+			<th>ログインID</th>
+			<td>@account.UserName</td>
+		</tr>
+		<tr>
+			<th>氏名</th>
+			<td>@(account.LastName + " " + account.FirstName)</td>
+		</tr>
+		<tr>
+			<th>氏名カナ</th>
+			<td>@(account.LastNameKana + " " + account.FirstNameKana)</td>
+		</tr>
+		<tr>
+			<th>生年月日</th>
+			<td>@account.Birthday.Value.ToString("yyyy年MM月dd日")</td>
+		</tr>
+		<tr>
+			<th>性別</th>
+			<td>@(account.Sex == HumanSexes.NotKnown ? "未選択" : account.Sex == HumanSexes.Male ? "男性" : "女性")</td>
+		</tr>
+		<tr>
+			<th>メール購読</th>
+			<td>@(account.Subscribe ? "する" : "しない" )</td>
+		</tr>
+	</table>
+
+	@Raw(Page.Html.ModelToObjectState("model",account))
+	@(Page.Html.SessionAntiForgeryToken())
+
+	<input id="back" type="submit" value="戻る"  class="hidden"/>
+	<input id="register" type="submit" name="create"  value="登録" class="hidden" />
+</form>
+
+<div>
+	<label for="back" class="btn btn-default btn-ghost">戻る</label>
+	<label for="register" class="btn btn-success">登録</label>
+</div>

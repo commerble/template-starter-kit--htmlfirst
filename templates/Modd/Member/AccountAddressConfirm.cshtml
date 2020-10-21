@@ -1,0 +1,57 @@
+﻿@{
+  var address = Page.ViewData.Model as VM.AccountAddress;
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages; 
+}
+@DisplayViewMessages(viewData)
+
+<h2>住所変更 - 確認</h2>
+
+<form action="@Page.Template.SecuredLink("ModdDefault", new {controller="Member", action="AccountAddress"})" method="post">
+
+  <table>
+  <tr>
+    <th>郵便番号</th>
+    <td>
+      @address.ZipCode
+    </td>
+  </tr>
+  <tr>
+    <th>都道府県</th>
+    <td>
+      @address.Pref
+    </td>
+  </tr>
+  <tr>
+    <th>市区町村</th>
+    <td>
+      @address.City
+    </td>
+  </tr>
+  <tr>
+    <th>番地</th>
+    <td>
+      @address.Street
+    </td>
+  </tr>
+  <tr>
+    <th>アパート・マンション名</th>
+    <td>
+      @address.Building
+    </td>
+  </tr>
+  <tr>
+    <th>お電話番号</th>
+    <td>
+      @address.Tel
+    </td>
+  </tr>
+  </table>
+
+
+  @Raw(Page.Html.ModelToObjectState("model",address))
+  @(Page.Html.SessionAntiForgeryToken())
+
+  <p>
+  <input type="submit" name="update" value="変更" class="btn btn-success"/>
+  <p>
+</form>

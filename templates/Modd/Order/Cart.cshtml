@@ -1,0 +1,148 @@
+﻿@{
+	var carts = Page.ViewData.Model as IEnumerable<ShoppingCartBase>;
+}
+<h2>買い物カゴのなか</h2>
+
+@if ( !carts.Any(c=>c.Items.Count > 0) ) {
+	<div class="alert alert-info">
+		現在、お買い物カゴに商品は入っていません。引き続きお買い物をお楽しみ下さい。
+	</div>
+	<a href="@Page.Url.RouteUrl("Top")" class="btn btn-default">お買い物を続ける</a>
+}
+
+@foreach(var cart in carts.Where(c=>c.Items.Any()) ) {  
+	
+	<p>数量を変更した場合は「再計算」ボタンを押して下さい。</p>
+	
+	var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+	var hasErrors = false;
+	var isCashOnDeliveryOnly = false;
+	var isCreditCardOnly = false;
+	var isPointOnlyCart = false;
+	var isLimitPerAccount = false;
+	
+	foreach(var item in cart.Items ){
+		var paymentMethods = Page.Template.GetProductPaymentMethods(item.ProductId);
+		if(paymentMethods.All(p => p==PaymentMethod.CashOnDelivery || p==PaymentMethod.PointOnly)){
+			isCashOnDeliveryOnly = true;
+		}else if(paymentMethods.All(p => p==PaymentMethod.CreditCard || p==PaymentMethod.PointOnly)){
+			isCreditCardOnly = true;
+		}
+	}
+	// 決済方法の組み合わせが無理？
+	if(isCashOnDeliveryOnly && isCreditCardOnly){
+		viewData.Errors.Add("CantSelectPaymentMethod");
+	}
+	hasErrors = HasViewMessages(viewData);
+	<p>
+	@DisplayViewMessages(viewData)
+	</p>
+	<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="Cart"} )" method="post">
+		@Page.Html.Hidden("CartId", cart.CartDefinition.CartId )
+		<table>
+			<thead>
+				<tr>
+					<td>商品番号</td>
+					<td>商品名</td>
+					<td>発売日</td>
+					<td>販売価格</td>
+					<td>数量</td>
+					<td>小計</td>
+					<td>&nbsp;</td>
+				</tr>
+			</thead>
+			<tfoot>
+				<tr>
+					<td>商品合計</td>
+					<td colspan="4">
+						<button class="btn_itemclear btn btn-default btn-ghost" type="submit" name="itemclear" value="カートクリア">買い物かごを空にする</button>
+						<button class="btn_calculate btn btn-primary btn-ghost" type="submit" name="recalc" value="再計算">再計算</button>
+					</td>
+					<td>@PrintPrice(cart.Subtotal) (税込)</td>
+					<td>&nbsp;</td>
+				</tr>
+			</tfoot>
+			<tbody>
+			@foreach(var item in cart.Items ) {
+				var stockout = cart.Errors.Any(err => err.Item.ProductId == item.ProductId && err.ErrorType == ShoppingCartErrorType.StockOut);
+				var hasError = cart.Errors.Any(err => err.Item.ProductId == item.ProductId);
+				var prefix = string.Format("Items[{0}].", cart.Items.IndexOf(item) );
+				if( (Page.Template.GetProductSalesPattern(item.Product.ProductId).MaxPurchasePerAccount ?? 0 ) > 0) {
+					isLimitPerAccount = true;
+				}
+			<tr>
+				<td>@item.Product.ExternalId</td>
+				<td><a href="#" target="_blank">@item.Product.Name</a></td>
+	  			<td>@string.Format("{0:yyyy/MM/dd}", item.Product.ReleaseDate)</td>
+				<td>
+					@PrintPrice(Page.Template.GetUnitPriceWithTax(item.Product.ProductId))
+					@if (item.IsPointOnly){ 
+						<text>ポイント</text>
+					} else { 
+						@(Page.Template.GetUnitPriceWithTax(item.Product.ProductId) == item.Product.UnitPrice ? "(非課税)" : "(税込)")
+					}
+				</td>
+				<td>
+					@if (stockout) {
+						@:在庫切れ
+					} else {
+						@Page.Html.DropDownList(prefix + "RequestAmount", item.SelectAmount(), new {} )
+						@Page.Html.Hidden(prefix + "ProductId", item.Product.ProductId )
+					}
+				</td>
+				<td>
+					@PrintPrice(item.LinePrice)
+					@if (item.IsPointOnly) { 
+						<text>ポイント</text>
+						isPointOnlyCart = true; 
+					}else{ 
+						@(Page.Template.GetUnitPriceWithTax(item.Product.ProductId) == item.Product.UnitPrice ? "(非課税)" : "(税込)")
+					}
+				</td>
+				<td><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="CartItemDelete", item=item.Product.ProductId} )" class="btn @(hasError ? "btn-error" : "btn-default btn-ghost")">削除</a></td>
+			</tr>
+			}
+			</tbody>
+		</table>
+	</form>
+
+	@:@(Page.Html.Partial("ModdSharedApplyCampaigns", cart))
+
+	if (!cart.CanCancel || isPointOnlyCart || isLimitPerAccount ) {
+		<div>
+			<p>【　ご注意ください　】</p>
+			@if (!cart.CanCancel){ 
+				<div>買い物カゴにご注文完了後のキャンセルが出来ない商品が含まれています。</div> 
+			}
+			@if (isPointOnlyCart || isLimitPerAccount ) {
+				<div>買い物カゴに会員以外の方はご注文できない商品が含まれています。</div>
+			}
+		</div>
+	}
+	if (!hasErrors) {
+		<div class="alert alert-info">
+			利用規約に同意の上、「レジへすすむ」ボタンを押して、”お届け先・お支払い方法の選択”へすすんで下さい。<br />
+			※「レジへすすむ」ボタンを押すことで、利用規約に同意されたものといたします。
+		</div>
+
+	}else{
+		<div class="alert alert-error">
+			【ご確認下さい】ご入力内容にエラーがあるため、レジへはすすめません。エラー内容を確認し、修正して下さい。
+		</div>
+		if(Page.ViewData.ModelState.Values.Any((ModelState state) => state.Errors.Any((ModelError error)=>error.ErrorMessage.StartsWith("RoleLimitationItem"))) &&
+			cart.ApplyCampaigns.Any(c=>c.CampaignId == 2)
+		){
+			<span style="font-weight: bold;color: #ff6a00">アイドリングに入らないとー！</span>
+		}
+	}
+
+	<div>
+		<a href="@Page.Url.RouteUrl("Top")" class="btn btn-default">お買い物を続ける</a>
+		@if (!hasErrors) {
+		<a href="@Page.Template.SecuredLink("ModdPurchase", new {cart=cart.CartDefinition.CartId,action="Index"})" class="btn btn-primary">レジへすすむ</a>
+		}
+		else {
+		<button class="btn btn-primary" disabled>レジへすすむ</button>
+		}
+	</div>
+}

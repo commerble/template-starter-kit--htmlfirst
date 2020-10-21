@@ -1,0 +1,71 @@
+﻿@{
+  var address = Page.ViewData.Model as UserAddress;
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+}
+@DisplayViewMessages(viewData)
+
+@if (address.AddressId == 0)  {
+  <h2>お届け先新規登録</h2>
+  <p>下記フォームへお届け先を入力後「登録する」ボタンをクリックしてください。</p>
+} else {
+  <h2>お届け先の変更・削除</h2>
+  <p>お届け先の変更をご希望のお客様は、下記フォームに変更内容を入力後「変更する」ボタンをクリックしてください。<br />
+  削除したい場合は「削除する」ボタンをクリックしてください。</p>
+}
+
+<form id="useraddress" 
+      name="useraddress"
+      action="@Page.Url.RouteUrl("ModdDefault", new {controller="Member", 
+                                                  action=address.AddressId == 0 ? "CreateAddress" : "Addresses", 
+                                                  id=address.AddressId == 0 ? "" : address.AddressId.ToString()} )" method="post">
+
+<table>
+  <tbody>
+    <tr>
+      <th>登録名</th>
+      <td>
+        @(Page.Html.TextBox("AddressName",address.AddressName ?? "", new {@class="input_shipAddress1", @maxlength="10"}))
+        @(Page.Html.ValidationMessage("AddressName","*"))
+      </td>
+    </tr>
+  @(Page.Html.PartialEx("ModdSharedAddressEditor", address.Address, new {target="Address", command="zipsearch",commandUrl=Href("~/Member/CreateAddress")} ))
+  </tbody>
+</table>
+
+<div>
+  <a href="@Page.Url.RouteUrl("ModdDefault", new {controller="Member", action="Addresses", id=(int?)null})" class="btn btn-default btn-ghost">一覧へもどる</a>
+  @if (address.AddressId == 0) {
+    <button id="btn_regist" class="btn btn-success">登録する</button>
+  } else {
+    <button id="btn_change" class="btn btn-success">変更する</button>
+    <button id="btn_delete" class="btn btn-error">削除する</button>
+  }
+</div>
+
+  <input type="hidden" name="create" id="create" value="" />
+  <input type="hidden" name="update" id="update" value="" />
+  <input type="hidden" name="delete" id="delete" value="" />
+  @(Page.Html.SessionAntiForgeryToken())
+
+</form>
+
+@section ScriptBlock {
+<script type="text/javascript">
+$(function(){
+  var cmds = [
+    {button:"#btn_regist",form:"#create"},
+    {button:"#btn_change",form:"#update"},
+    {button:"#btn_delete",form:"#delete"}
+  ];
+  $(cmds).each(function(idx,val){
+    $(val.button).click(function(e){
+      e.preventDefault();
+      $(val.form).val("post");
+      $("#useraddress").each(function(){
+        this.submit();
+      });
+    });
+  });
+});
+</script>
+}

@@ -1,0 +1,72 @@
+﻿@{
+	var address = (Page.ViewData.Model as Address) ?? new Address();
+	var target = string.Format("{0}.", Page.ViewData["target"]);
+	var command = string.Format("{0}", Page.ViewData["command"]);
+	var prefix = string.Format("{0}_", Page.ViewData["target"]);
+	var commandUrl = Page.ViewData["commandUrl"];
+	var commandMethod = "ic-" + (Page.ViewData["commandMethod"] as string ?? "post") + "-to";
+}
+<tr>
+	<th>お名前</th>
+	<td>
+		@(Page.Html.TextBox(target + "Recipientlastname", address.Recipientlastname, new {@maxlength="10"}))
+		@(Page.Html.ValidationMessage(target + "Recipientlastname","*"))
+		@(Page.Html.TextBox(target + "Recipientfirstname", address.Recipientfirstname, new {@maxlength="10"}))
+		@(Page.Html.ValidationMessage(target + "Recipientfirstname","*"))（全角）
+	</td>
+</tr>
+<tr>
+	<th>カナ</th>
+	<td>
+		@(Page.Html.TextBox(target + "Recipientlastnamekana", address.Recipientlastnamekana, new {@maxlength="10"}))
+		@(Page.Html.ValidationMessage(target + "Recipientlastnamekana","*"))
+		@(Page.Html.TextBox(target + "Recipientfirstnamekana", address.Recipientfirstnamekana, new {@maxlength="10"}))
+		@(Page.Html.ValidationMessage(target + "Recipientfirstnamekana","*"))（全角カナ）
+	</td>
+</tr>
+<tr>
+	<th>郵便番号</th>
+	<td>
+		@(Page.Html.TextBox(target + "ZipCode", address.ZipCode, new {@maxlength="7"}))
+		@(Page.Html.ValidationMessage(target + "ZipCode","*"))
+		<button class="btn btn-default" @(commandMethod)="@commandUrl" ic-target="#@(prefix)zipsearch" ic-include='{"@command":"@command"}'>
+			検索 <i class="fa fa-spinner fa-spin ic-indicator" style="display:none"></i>
+		</button>
+		<div id="@(prefix)zipsearch"></div>
+	</td>
+</tr>
+<tr>
+	<th>都道府県</th>
+	<td>
+		@(Page.Html.TextBox(target + "Pref", address.Pref, new {@readonly="readonly"}))
+		@(Page.Html.ValidationMessage(target + "Pref","*"))（郵便番号検索で自動的に挿入されます。）
+	</td>
+</tr>
+<tr>
+	<th>市区町村</th>
+	<td>
+		@(Page.Html.TextBox(target + "City", address.City, new {@readonly="readonly"}))
+		@(Page.Html.ValidationMessage(target + "City","*"))（郵便番号検索で自動的に挿入されます。）
+	</td>
+</tr>
+<tr>
+	<th>番地</th>
+	<td>
+		@(Page.Html.TextBox(target + "Street", address.Street, new {@maxlength="64"}))
+		@(Page.Html.ValidationMessage(target + "Street", "*"))（全角　※例：１－１－１）
+	</td>
+</tr>
+<tr>
+	<th>アパート・マンション名</th>
+	<td>
+		@(Page.Html.TextBox(target + "Building", address.Building, new {@maxlength="64"}))
+		@(Page.Html.ValidationMessage(target + "Building", "*"))（全角　※例：マンション１号室）
+	</td>
+</tr>
+<tr>
+	<th>お電話番号</th>
+	<td>
+		@(Page.Html.TextBox(target + "Tel", address.Tel, new {@maxlength="11"}))
+		@(Page.Html.ValidationMessage(target + "Tel", "*"))（-で区切らずに半角数字で入力して下さい。　※例：0312345678）
+	</td>
+</tr>

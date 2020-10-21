@@ -1,0 +1,52 @@
+﻿@{
+  var favorites = Page.ViewData.Model as IEnumerable<Favorite>;
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+
+	int page, eachPage = 10;
+	if( !Int32.TryParse((Page.Request.QueryString["page"] ?? "0"), out page)){
+		page = 0;
+	}
+	var itemCount = favorites.Count();
+  var itemList = favorites.Skip(page*eachPage);
+}
+@DisplayViewMessages(viewData)
+
+<h2>お気に入り一覧</h2>
+
+@DisplayPagerSummury(page, itemCount, eachPage)
+@DisplayPager(page, itemCount, eachPage)
+
+@if(!itemList.Any()) {
+  <text>お気に入りリストに登録されている商品はありません。 </text>
+} else {
+<table>
+  <thead>
+	  <tr>
+		  <td>商品番号</td>
+		  <td>商品名</td>
+		  <td>発売日</td>
+		  <td>販売価格/<br />必要ポイント</td>
+		  <td>&nbsp;</td>
+		  <td>&nbsp;</td>
+	  </tr>
+  </thead>
+  <tbody>
+    @foreach(var favorite in itemList.Take(eachPage)) {
+    <tr>
+	    <td>@favorite.Product.ExternalId</td>
+	    <td><a href="#">@favorite.Product.Name.Trim()</a></td>
+	    <td>@string.Format("{0:yyyy/MM/dd}",favorite.Product.ReleaseDate)</td>
+	    <td>@string.Format("{0:#,##0}", Page.Template.GetUnitPriceWithTax(favorite.ProductId)) 円(税込)</td>
+	    <td>@if (Page.Template.GetProductAmount(favorite.ProductId) > 0) {
+           <a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="Cart", item=favorite.ProductId} )">[買い物カゴに入れる]</a>
+                                                                                                                         }</td>
+	    <td><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Favorites", id=favorite.ProductId} )" class="btn btn-default btn-ghost">削除</a></td>
+    </tr>
+    }
+  </tbody>
+</table>
+}
+
+@DisplayPager(page, itemCount, eachPage)
+
+<div><a href="@Page.Url.RouteUrl("ModdDefault", new { Controller="Member",Action="Index"})" class="btn btn-default btn-ghost">マイページトップへ</a></div>

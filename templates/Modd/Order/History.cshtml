@@ -1,0 +1,211 @@
+﻿@{
+	var cart = Page.ViewData.Model as HistoryCart; 
+	var paymentMethods = new Dictionary<PaymentMethod,string>{
+	{ PaymentMethod.None, "決済方法なし"},
+	{ PaymentMethod.CashOnDelivery, "代引き" },
+	{ PaymentMethod.Offsite, "オフサイト" },
+	{ PaymentMethod.Offline, "オフライン" },
+	{ PaymentMethod.Token, "クレジットカード" },
+	{ PaymentMethod.PointOnly, "全額ポイント" },
+	{ PaymentMethod.Cvs, "コンビニ" },
+	{ PaymentMethod.External, "外部遷移" },
+	};
+
+	var messageStatus = new Dictionary<OrderStatus,string>{
+		{OrderStatus.Accept,       "注文完了"},
+		{OrderStatus.UnAllocate,   "注文完了"},
+		{OrderStatus.PartAllocate, "出荷準備中"},
+		{OrderStatus.Allocated,    "出荷準備中"},
+		{OrderStatus.ShipIndicate, "出荷準備中"},
+		{OrderStatus.Ship,         "出荷完了"},
+		{OrderStatus.Arrival,      "お届け完了"},
+		{OrderStatus.Booked,       "お届け完了"},
+		{OrderStatus.Cancel,       "キャンセル"},
+		{OrderStatus.ShipSuspend,  "出荷準備中"}
+	};
+
+	var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+	var canPaymentMethodChange = cart.CanModifyPaymentMethod();
+	var hasChanges = cart.Original != null && (
+			cart.Original.PaymentMethod != cart.PaymentMethod
+		|| 	cart.Original.OrderCustomer.PaymentDetail != cart.OrderCustomer.PaymentDetail
+		||	cart.Original.OrderCustomer.EmailAddr != cart.OrderCustomer.EmailAddr
+		||	cart.Original.DeliveryOrderAddress.ToString() != cart.DeliveryOrderAddress.ToString()
+		||	cart.Original.DeliveryOrderAddress.Tel != cart.DeliveryOrderAddress.Tel
+		||	cart.Original.DeliveryOrderAddress.Recipientlastname != cart.DeliveryOrderAddress.Recipientlastname
+		||	cart.Original.DeliveryOrderAddress.Recipientfirstname != cart.DeliveryOrderAddress.Recipientfirstname
+		||	cart.Original.DeliveryOrderAddress.Recipientlastnamekana != cart.DeliveryOrderAddress.Recipientlastnamekana
+		||	cart.Original.DeliveryOrderAddress.Recipientfirstnamekana != cart.DeliveryOrderAddress.Recipientfirstnamekana
+		|| 	cart.Original.DeliveryOrder.DeliveryDate != cart.DeliveryOrder.DeliveryDate
+		|| 	cart.Original.DeliveryOrder.HourRange != cart.DeliveryOrder.HourRange
+		|| 	cart.Original.DeliveryOrder.WrappingType != cart.DeliveryOrder.WrappingType
+		|| 	cart.Original.DeliveryOrder.SenderName != cart.DeliveryOrder.SenderName
+	);
+}
+@DisplayViewMessages(viewData)
+
+<h2>ご注文内容の詳細</h2>
+<p>ご注文内容をご確認ください。&nbsp;各項目の内容を変更した場合は、「変更を確定」ボタンをクリックしてください。</p>
+
+<p>ご注文番号</p>
+<div>@cart.OrderId</div>
+
+<div>
+@(Page.Html.Partial("ModdSharedCartItems", cart))
+</div>
+
+<table>
+	<caption>配送状況</caption>
+	<tbody>
+		<tr>
+			<th>配送状況</th>
+			<td>
+        @(messageStatus.ContainsKey(cart.OrderStatus) ? 
+            ( cart.OrderStatus == OrderStatus.Arrival ? ( cart.ReturnDate == null ? messageStatus[cart.OrderStatus] : "返品済み" ) :
+            messageStatus[cart.OrderStatus] ) : cart.OrderStatus.ToString())
+      </td>
+		</tr>
+		<tr>
+			<th>伝票番号</th>
+			<td>@cart.DeliveryOrder.DeliveryNo</td>
+		</tr>
+	</tbody>
+</table>
+
+<table>
+	<caption>お支払い情報</caption>
+	<tbody>
+		<tr>
+			<th>商品合計（税込）</th>
+			<td>@PrintPrice(cart.Subtotal)</td>
+		</tr>
+		<tr>
+			<th>含まれる消費税</th>
+			<td>@PrintPrice(cart.Items.Where(i=> new OrderLineType[] { OrderLineType.SetProductParent, OrderLineType.NormalOrder}.Contains( i.OrderLineType)).Sum(i=>i.Tax))</td>
+		</tr>
+		<tr>
+			<th>送料（税込）</th>
+			<td>@PrintPrice(cart.DeliveryCharge)</td>
+		</tr>
+		<tr>
+			<th>決済手数料（税込）</th>
+			<td>@PrintPrice(cart.CacheOnDeliveryCharge)</td>
+		</tr>
+		<tr>
+		<tr>
+			<th>お支払い総合計（税込）</th>
+			<td>@PrintPrice(cart.TotalPayment)</td>
+		</tr>
+    </tbody>
+</table>
+					
+<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=cart.OrderId} )" method="post">
+	<table>
+		<caption>
+      お支払い方法
+    </caption>
+		<tbody>
+			<tr>
+				<th>お支払い方法</th>
+				<td>@paymentMethods[cart.PaymentMethod]
+					@if (!string.IsNullOrEmpty(cart.OrderCustomer.PaymentDetail)) {
+						<text>( @cart.OrderCustomer.PaymentDetail )</text>
+					}
+					@if (!cart.CanModifyPaymentMethod()){
+						<text>(変更は出来ません。)</text>
+					}
+        		</td>
+			</tr>
+		</tbody>
+	</table>
+	@if(cart.CanModifyPaymentMethod()){
+		<input type="submit" name="payment" value="お支払方法の変更" class="btn btn-default btn-ghost" />
+	}
+</form>
+
+
+<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=cart.OrderId} )" method="post">
+  <table>
+    <caption>
+      お客様情報
+    </caption>
+	  <tbody>
+      @(Page.Html.Partial("ModdSharedAddressDisplay", cart.OrderCustomerOrderedAddress ))
+      <tr>
+	      <th>メールアドレス</th>
+	      <td>
+		      @cart.OrderCustomer.EmailAddr
+	      </td>
+      </tr>
+	  </tbody>
+  </table>
+	@if(cart.CanModify) {
+		<input type="submit" name="customer" value="お客様情報の変更" class="btn btn-default btn-ghost" />
+	}
+</form>
+
+<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=cart.OrderId} )" method="post">
+	<table>
+		<caption>
+      お届け先情報
+		</caption>
+		<tbody>
+      		@(Page.Html.Partial("ModdSharedAddressDisplay", cart.DeliveryOrderAddress ))
+		</tbody>
+	</table>
+	@if(cart.CanModify) {
+		<input type="submit" name="shipping" value="お届け先の変更" class="btn btn-default btn-ghost"/>
+	}
+</form>
+					
+<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=cart.OrderId} )" method="post">
+	<table>
+		<caption>
+      お届け方法
+		</caption>
+		<tbody>
+			<tr>
+				<th>お届け日</th>
+				<td>
+					@if (cart.DeliveryOrder.DeliveryDate.HasValue) { 
+					  @:@string.Format("{0:yyyy年MM月dd日}", cart.DeliveryOrder.DeliveryDate)
+					} else if (cart.LastReleaseDate > DateTime.Now) {
+					  	<text>
+							発売日が異なる商品を同時（同一ご注文番号の場合）にご予約いただいた場合、<br/>
+									発売日が最も遅い商品に合わせて全ての商品をお届けいたします。
+						</text>
+					} else {
+  						<text>指定なし</text>
+					}
+				</td>
+			</tr>
+			<tr>
+				<th>お届け時間</th>
+				<td>@(string.IsNullOrEmpty(cart.DeliveryOrder.HourRange) ?  "指定なし" : cart.HourRangeName(cart.DeliveryOrder.HourRange))</td>
+			</tr>
+			<tr>
+				<th>明細書への金額印字</th>
+				<td>@(cart.DeliveryOrder.WrappingType.Value == 1 ? "しない" : "する")</td>
+			</tr>
+			<tr>
+				<th>依頼者名</th>
+				<td>@cart.DeliveryOrder.SenderName</td>
+			</tr>
+		</tbody>
+	</table>
+	@if(cart.CanModify) {
+		<input type="submit" name="delivery" value="お届け方法の変更" class="btn btn-default btn-ghost"/>
+	}
+</form>
+					
+<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=cart.OrderId} )" method="post" style="margin-top: 5em;">
+	<a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=(long?)null } )" class="btn btn-default btn-ghost">一覧へもどる</a>
+	@if(hasChanges && (cart.CanModify || cart.CanModifyPaymentMethod())) {
+		<input type="submit" name="commit" value="変更を確定" class="btn btn-primary" />
+	}
+	@if (cart.CanCancel) {
+		<a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="HistoryCancel", id=cart.OrderId} )" class="btn btn-error">注文をキャンセルする</a>
+	}
+  	@(Page.Html.HttpMethodOverride("put"))
+  	@(Page.Html.SessionAntiForgeryToken())
+</form>

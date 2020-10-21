@@ -1,0 +1,83 @@
+﻿@{
+  var cart = Page.ViewData.Model as CancelCart; 
+  
+	var messageStatus = new Dictionary<OrderStatus,string>{
+		{OrderStatus.Accept,"受注"},
+		{OrderStatus.UnAllocate,"未引当"},
+		{OrderStatus.PartAllocate,"中途引当"},
+		{OrderStatus.Allocated,"引当済"},
+		{OrderStatus.ShipIndicate,"出荷指示済"},
+		{OrderStatus.Ship,"出荷済"},
+		{OrderStatus.Arrival,"着荷済"},
+		{OrderStatus.Booked,"計上済"},
+		{OrderStatus.Cancel,"キャンセル"},
+		{OrderStatus.ShipSuspend,"出荷保留"}
+	};
+	
+	var pointFixed = new List<OrderStatus>{OrderStatus.Arrival,OrderStatus.Booked};
+	bool isGuest = cart.OrderCustomer.IsGuest;
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+}
+@DisplayViewMessages(viewData)
+
+<h2>ご注文のキャンセル</h2>
+<p>キャンセル内容をご確認ください。</p>
+
+<table>
+	<thead>
+		<tr>
+			<td>注文番号</td>
+			<td>注文日</td>
+			<td>お支払い金額</td>
+			<td>使用ポイント</td>
+			<td>状況</td>
+			<td>
+        @if(!isGuest){
+           <text>ポイント獲得状況</text>
+         }else{
+           <text>&nbsp;</text>
+         }
+      </td>
+		</tr>
+	</thead>
+	<tbody>
+	  <tr>
+		  <td>@cart.OrderId</td>
+		  <td>@string.Format("{0:yyyy/MM/dd}", cart.OrderDate)</td>
+		  <td>@PrintPrice(cart.TotalPayment) (税込)</td>
+		  <td>@cart.TotalUsagePoint.ToString("N0") ポイント</td>
+		  <td>@(messageStatus.ContainsKey(cart.OrderStatus) ? messageStatus[cart.OrderStatus] : cart.OrderStatus.ToString() )</td>
+		  <td>
+        @if(!isGuest){
+				  <div>@((cart.ChargePointSummary ?? 0).ToString("N0")) ポイント</div>
+				  <div>
+          @if( pointFixed.Contains(cart.OrderStatus)) { 
+            <text>確定</text>
+          } else {
+            <text>仮</text>
+          }
+          </div>
+        }
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+@if(cart.CanCancel) {
+  <p>
+    @if(!isGuest){
+      <div>還元ポイントの@((cart.ChargePointSummary ?? 0).ToString("N0"))ポイントを無効にします。</div>
+    }
+		よろしければ「キャンセルする」ボタンを押してください。注文のキャンセルが完了します。
+  </p>
+}else{
+  <p class="formHeading">この注文は、キャンセル出来ません。</p>
+}
+@if(cart.CanCancel){
+  <form id="history" action="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=cart.OrderId} )" method="post">
+    @(Page.Html.HttpMethodOverride("delete"))
+		<a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History"})" class="btn btn-default btn-ghost"><span>一覧へもどる</span></a>
+    <input type="submit" name="commit" value="キャンセルする" class="btn btn-error"/>
+    @(Page.Html.SessionAntiForgeryToken())
+  </form>
+}

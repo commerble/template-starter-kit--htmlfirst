@@ -1,0 +1,26 @@
+﻿@{
+  var order = Page.ViewData.Model as PurchaseOrder;
+  bool isGuest = order.OrderCustomer.IsGuest;
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+}
+<h2>ご注文完了</h2>
+
+@DisplayViewMessages(viewData)
+
+<p>ご注文ありがとうございました。</p>
+<p>登録しているEメールアドレス宛に、ご注文確認メールを送信しました。<br />
+ご注文確認メールはご注文控えとして、大切に保管してください。</p>
+
+<div class="alert alert-info">
+  ご注文番号 
+  @if (!isGuest){
+    <a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=order.OrderId} )">@order.OrderId</a>
+  } else {
+    <a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Site", action="GuestOrder", id=order.OrderCustomer.GuestAccessKey} )">@order.OrderId</a>
+  }
+</div>
+
+<a href="@Page.Url.RouteUrl("Top")" class="btn btn-default">お買い物を続ける</a>
+@if (!isGuest) {
+<a href="@Page.Url.RouteUrl("ModdDefault", new { Controller="Member",Action="Index"})" class="btn btn-default btn-ghost">マイページへ</a>
+}

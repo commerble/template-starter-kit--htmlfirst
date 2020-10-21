@@ -1,0 +1,16 @@
+@{
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+}
+@DisplayViewMessages(viewData)
+
+<h2>パスワードリカバリー - 新しいパスワードを入力してください</h2>
+
+<form name="site_login" action="@Page.Url.RouteUrl("ModdDefault", new { controller="Site",action="Recovery", id=Page.ViewData["id"]})" method="post">
+	パスワード @(Page.Html.Password("Password")) <br/>
+	パスワード確認 @(Page.Html.Password("ConfirmPassword"))
+
+	<p>
+	<input type="submit" name="update" value="変更" />
+  @(Page.Html.SessionAntiForgeryToken())
+	<p>
+</form>

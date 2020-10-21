@@ -1,0 +1,11 @@
+﻿@{
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages; 
+}
+@DisplayViewMessages(viewData)
+      
+<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Quit"})" method="post">
+  <p><label>@(Page.Html.CheckBox("accept", false)) いろいろ了承します。</label></p>
+
+  <input type="submit" name="update" value="退会" class="btn btn-error"/>
+  @(Page.Html.SessionAntiForgeryToken())
+</form>

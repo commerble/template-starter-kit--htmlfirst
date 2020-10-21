@@ -1,0 +1,65 @@
+﻿@{
+	var address = (Page.ViewData.Model as Address) ?? new Address();
+	var target = string.Format("{0}.", Page.ViewData["target"]);
+	var command = string.Format("{0}", Page.ViewData["command"]);
+	var prefix = string.Format("{0}_", Page.ViewData["target"]);
+}
+<tr>
+	<th>お名前</th>
+	<td>
+		<p>@address.Recipientlastname @address.Recipientfirstname</p>
+	</td>
+</tr>
+<tr>
+	<th>カナ</th>
+	<td>
+		<p>@address.Recipientlastnamekana @address.Recipientfirstnamekana</p>
+	</td>
+</tr>
+<tr>
+	<th>郵便番号</th>
+	<td>
+		@(Page.Html.TextBox(target + "ZipCode", address.ZipCode, new {@maxlength="7", pattern="[0-9]{7}", title="-で区切らず半角数字で入力してください。※例：1070052"}))
+		@(Page.Html.ValidationMessage(target + "ZipCode","*"))
+		<button class="zip-search btn btn-default" name="@command" ic-post-to="@Href("~/Purchase/1/Shipping")" ic-target="#@(prefix)Zip_Search_Result">
+			検索 <i class="fa fa-spinner fa-spin ic-indicator" style="display:none"></i>
+		</button>
+		<div id="@(prefix)Zip_Search_Result">
+		</div>
+	</td>
+</tr>
+<tr>
+	<th>都道府県</th>
+	<td>
+		@(Page.Html.TextBox(target + "Pref", address.Pref, new {@readonly="readonly"}))
+		@(Page.Html.ValidationMessage(target + "Pref","*"))（郵便番号検索で自動的に挿入されます。）
+	</td>
+</tr>
+<tr>
+	<th>市区町村</th>
+	<td>
+		@(Page.Html.TextBox(target + "City", address.City, new {@readonly="readonly"}))
+		@(Page.Html.ValidationMessage(target + "City","*"))（郵便番号検索で自動的に挿入されます。）
+	</td>
+</tr>
+<tr>
+	<th>番地</th>
+	<td>
+		@(Page.Html.TextBox(target + "Street", address.Street, new {@maxlength="64"}))
+		@(Page.Html.ValidationMessage(target + "Street","*"))（全角　※例：１－１－１）
+	</td>
+</tr>
+<tr>
+	<th>アパート・マンション名</th>
+	<td>
+		@(Page.Html.TextBox(target + "Building", address.Building, new {@maxlength="64"}))
+		@(Page.Html.ValidationMessage(target + "Building","*"))（全角　※例：マンション１号室）
+	</td>
+</tr>
+<tr>
+	<th>お電話番号</th>
+	<td>
+		@(Page.Html.TextBox(target + "Tel", address.Tel, new {@maxlength="11"}))
+		@(Page.Html.ValidationMessage(target + "Tel","*"))（-で区切らずに半角数字で入力して下さい。　※例：0312345678）
+	</td>
+</tr>

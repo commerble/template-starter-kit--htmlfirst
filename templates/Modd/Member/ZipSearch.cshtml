@@ -1,0 +1,34 @@
+﻿@{
+	Layout = null;
+  var addressId = (long?)Page.ViewData["addressId"];
+  var zipsearchAction = (string)Page.ViewData["zipsearchAction"];
+  var zipList = Page.ViewData.Model as List<ZipCodeAddress>;
+}
+<section class="modal">
+  <div class="modal__content">
+    @if (!zipList.Any())
+    {
+      <p>郵便番号に該当する住所が見つかりませんでした。</p>
+      <form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Account"})" method="get">
+        <input type="submit" value="閉じる" />
+      </form>
+    }
+    else
+    {
+      foreach (var zip in zipList)
+      {
+        <form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="ZipSearch", id=addressId} )" method="post">
+          <input type="submit" value="選択" class="btn btn-default btn-ghost"/>
+          〒 @zip.ZipCode @zip.Prefecture @zip.City @zip.Street
+          @Page.Html.Hidden("ZipCode", zip.ZipCode)
+          @Page.Html.Hidden("Pref", zip.Prefecture)
+          @Page.Html.Hidden("City", zip.City)
+          @Page.Html.Hidden("Street", zip.Street)
+
+          @Page.Html.Hidden("target")
+          @Page.Html.Hidden("zipsearchAction")
+        </form>
+      }
+    }
+  </div>
+</section>

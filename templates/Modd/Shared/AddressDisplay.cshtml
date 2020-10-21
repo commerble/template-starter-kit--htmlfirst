@@ -1,0 +1,28 @@
+﻿@{
+	var address = Page.ViewData.Model as Address;
+}
+
+<tr>
+	<th>お名前</th>
+	<td>
+		<p>@address.Recipientlastname @address.Recipientfirstname</p>
+	</td>
+</tr>
+<tr>
+	<th>カナ</th>
+	<td>
+		<p>@address.Recipientlastnamekana @address.Recipientfirstnamekana</p>
+	</td>
+</tr>
+<tr>
+	<th>ご住所</th>
+	<td>
+		<p>@if ( address != null ) { @address }</p>
+	</td>
+</tr>
+<tr>
+	<th>お電話番号</th>
+	<td>
+		<p>@address.Tel</p>
+	</td>
+</tr>

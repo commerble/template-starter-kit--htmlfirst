@@ -1,0 +1,137 @@
+﻿@{
+  var cart = Page.ViewData.Model as ShoppingCartBase;
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+
+  var paymentMethods = new Dictionary<PaymentMethod,string>{
+    { PaymentMethod.CashOnDelivery, "代引き" },
+    { PaymentMethod.Cvs, "コンビニ" },
+    { PaymentMethod.Offsite, "オフサイト" },
+    { PaymentMethod.Offline, "オフライン" },
+    { PaymentMethod.Token, "クレジットカード" },
+    { PaymentMethod.PointOnly, "全額ポイント" },
+    { PaymentMethod.External, "外部遷移" },
+    { PaymentMethod.None, "決済方法なし"},
+  };
+	bool hasErrors = viewData.Errors.Count > 0;
+}
+
+<h2>ご注文内容の確認</h2>
+
+<p>ご注文内容をご確認いただき、よろしければ「注文する」ボタンをクリックしてください。</p>
+
+@DisplayViewMessages(viewData)
+
+
+<form action="@Page.Url.RouteUrl("ModdPurchase", new { cart=cart.CartDefinition.CartId, action="Index"} )" method="post">
+
+	<div>
+    @(Page.Html.Partial("ModdSharedCartItems", cart))
+	</div>
+  @(Page.Html.Partial("ModdSharedApplyCampaigns", cart))
+					
+	<table>
+		<caption>お支払い情報</caption>
+		<tbody>
+			<tr>
+				<th>商品合計（税込）</th>
+				<td>@PrintPrice(cart.Subtotal)</td>
+			</tr>
+			<tr>
+				<th>含まれる消費税</th>
+				<td>@PrintPrice(cart.Items.Sum(i=>i.Tax))</td>
+			</tr>
+			<tr>
+				<th>送料（税込）</th>
+				<td>@PrintPrice(cart.DeliveryCharge)</td>
+			</tr>
+			<tr>
+				<th>決済手数料（税込）</th>
+				<td>@PrintPrice(cart.CacheOnDeliveryCharge)</td>
+			</tr>
+			<tr>
+				<th>お支払い総合計（税込）</th>
+				<td>@PrintPrice(cart.TotalPayment)</td>
+			</tr>
+		</tbody>
+	</table>
+					
+	<table>
+		<caption>お客様情報</caption>
+		<tbody>
+      @(Page.Html.Partial("ModdSharedAddressDisplay", cart.OrderCustomerOrderedAddress ))
+			<tr>
+				<th>Eメールアドレス</th>
+				<td>@cart.OrderCustomer.EmailAddr</td>
+			</tr>
+		</tbody>
+	</table>
+					
+	<table>
+		<caption>お届け先情報</caption>
+		<tbody>
+      @(Page.Html.Partial("ModdSharedAddressDisplay", cart.DeliveryOrderAddress ))
+		</tbody>
+	</table>
+
+	<table>
+		<caption>お届け方法</caption>
+		<tbody>
+			<tr>
+				<th>お届け日</th>
+				<td>
+					@if (cart.DeliveryOrder.DeliveryDate.HasValue) {
+					  @:@string.Format("{0:yyyy年MM月dd日}", cart.DeliveryOrder.DeliveryDate)
+					} else if (cart.LastReleaseDate > DateTime.Now) {
+				  	<text>
+            発売日が異なる商品を同時（同一ご注文番号の場合）にご予約いただいた場合、<br/>
+		  			発売日が最も遅い商品に合わせて全ての商品をお届けいたします。
+            </text>
+					} else {
+            <text>指定なし</text>
+					}
+				</td>
+			</tr>
+			<tr>
+				<th>お届け時間</th>
+				<td>@(string.IsNullOrEmpty(cart.DeliveryOrder.HourRange) ?  "指定なし" : cart.HourRangeName(cart.DeliveryOrder.HourRange))</td>
+			</tr>
+			<tr>
+				<th>明細書への金額印字</th>
+				<td>@(cart.DeliveryOrder.WrappingType.Value == 1 ? "しない" : "する")</td>
+			</tr>
+			<tr>
+				<th>依頼者名</th>
+				<td>@cart.DeliveryOrder.SenderName</td>
+			</tr>
+		</tbody>
+	</table>
+					
+	<table>
+		<caption>お支払い方法</caption>
+		<tbody>
+			<tr>
+				<th>お支払い方法</th>
+				<td>
+          @paymentMethods[cart.PaymentMethod]
+          @if(!string.IsNullOrWhiteSpace(cart.OrderCustomer.PaymentDetail)){
+            <text>( @cart.OrderCustomer.PaymentDetail )</text>
+          }
+        </td>
+			</tr>
+		</tbody>
+	</table>
+
+	@if (hasErrors) {
+		<div class="alert alert-error">
+      ご入力内容にエラーがあるため、ご注文を完了できません。エラー内容を確認し、修正して下さい。
+		</div>
+	}
+
+	<div>
+		<a href="@Page.Url.RouteUrl("ModdPurchase", new { cart=cart.CartDefinition.CartId, action="Payment"} )" class="btn btn-default btn-ghost">前へもどる</a>
+		<input type="submit" class="btn btn-success" @(hasErrors?"disabled":"") value="注文する" />
+	</div>
+
+  @(Page.Html.SessionAntiForgeryToken())
+</form>
+

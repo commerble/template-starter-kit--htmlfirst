@@ -1,0 +1,80 @@
+﻿@{
+	var notices = Page.ViewData.Model as IEnumerable<ReserveRequest>; 
+	var stats = new Dictionary<ReserveRequestStatus,string>{
+		{ReserveRequestStatus.Accept, "未入荷"},
+		{ReserveRequestStatus.Allocated, "入荷"},
+		{ReserveRequestStatus.Purchased, "購入済"},
+		{ReserveRequestStatus.Cancel, "キャンセル"}
+	};
+	
+	var canCancel = new List<ReserveRequestStatus>{
+		ReserveRequestStatus.Accept,
+		ReserveRequestStatus.Allocated
+	};
+
+	var statsSort = new Dictionary<ReserveRequestStatus,int>{
+		{ReserveRequestStatus.Accept, 9},
+		{ReserveRequestStatus.Allocated, 10},
+		{ReserveRequestStatus.Purchased, 8},
+		{ReserveRequestStatus.Cancel, 0}
+	};
+
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+	int page, eachPage = 10;
+	if( !Int32.TryParse((Page.Request.QueryString["page"] ?? "0"), out page)){
+		page = 0;
+	}
+	var itemCount = notices.Count();
+  var itemList = notices.OrderByDescending(n=> statsSort[n.Status] ).ThenByDescending(n=> n.ReserveRequestId).Skip(page*eachPage);
+}
+@DisplayViewMessages(viewData)
+
+<h2>仮予約リスト</h2>
+
+@DisplayPagerSummury(page, itemCount, eachPage)
+@DisplayPager(page, itemCount, eachPage)
+
+@if(!itemList.Any()) {
+  <text>登録されている仮予約商品はありません。</text>
+} else {
+<table>
+	<thead>
+		<tr>
+			<td>商品番号</td>
+			<td>商品名</td>
+			<td>発売日</td>
+			<td>販売価格/<br />必要ポイント</td>
+			<td class="widefix">数量</td>
+			<td class="widefix">状況</td>
+			<td class="widefix">&nbsp;</td>
+			<td class="widefix">&nbsp;</td>
+		</tr>
+	</thead>
+	<tbody>
+  @foreach(var notice in itemList.Take(eachPage) ) {
+	<tr>
+		<td>@notice.Product.ExternalId</td>
+		<td><a href="#">@notice.Product.Name.Trim()</a></td>
+		<td>??</td>
+		<td>??</td>
+		<td>@notice.Amount </td>
+		<td>@stats[notice.Status]</td>
+		<td>@if (notice.Status == ReserveRequestStatus.Allocated) {
+        <a href="@CartInUrl(notice.ProductId, notice.ReserveRequestId)" class="btn btn-primary">買い物カゴに入れる</a>
+        }
+    </td>
+		<td>@if (canCancel.Contains(notice.Status)) { 
+        <a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Notices", id=notice.ReserveRequestId })" class="btn btn-default btn-ghost">キャンセル</a>
+        }
+    </td>
+	</tr>
+  }
+  </tbody>
+</table>
+}
+
+@DisplayPager(page, itemCount, eachPage)
+
+<p>
+	<a href="@Page.Url.RouteUrl("ModdDefault", new { Controller="Member",Action="Index"})" class="btn btn-default btn-ghost">マイページトップへ</a>
+</p>

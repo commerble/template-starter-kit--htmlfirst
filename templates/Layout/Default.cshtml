@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <title>@(ViewBag.PageTitle ?? "サンプルサイト")</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,maximum-scale=1">
+    <meta name="keywords" content="@ViewBag.PageKeywords">
+    <meta name="description" content="@ViewBag.PageDescription">
+    <link rel="icon" href="https://via.placeholder.com/70x70">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack/0.8.1/hack.css" />
+     <style>
+        .btn:disabled { background-color: white; border-color: white; color: #424242; text-decoration: line-through; }
+        th { width: 20em; }
+        dl { padding-left: 2rem; }
+        dt { margin: 2rem 0 1rem; }
+        .hidden { display: none; }
+        .tab { display: none; }
+        .tab.active { display: block; }
+        .hack footer { margin-top: 3em; }
+        .hack section { margin: 3rem 0; }
+        .hack header h1{ display: block; }
+        .hack header nav { float: right; }
+        .hack h1:after { content: "============================================================================================================="; }
+        .hack hr::after { content: "---------------------------------------------------------------------------------------------------------------------"; }
+        .modal { position: fixed; width: 100vw; height: 100vh; top: 0; left: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.4); margin:0!important; }
+        .modal__content { background: white; box-shadow: 1px 1px 10px gray; padding: 2rem; }
+        input:read-only {background: lightgray; border: 2px solid lightgray; color: gray; cursor: default; }
+    </style>
+    @if (ViewBag.JsonLd != null) {
+    <script type="application/ld+json">@Raw(Jil.JSON.SerializeDynamic(ViewBag.JsonLd))</script>
+    }
+</head>
+
+<body class="hack">
+  <main class="container">
+    <header>
+      <h1>
+        <a href="@Href("~/")">Commerble Sample</a>
+        <nav ic-get-from="@Href("~/Site/LoginState")" ic-trigger-on="load"></nav>
+      </h1>
+    </header>
+    @RenderBody()  
+    <hr/>
+    <footer>
+      <div class="grid">
+        <div class="cell -4of12">
+          <h3>関連リンク</h3>
+          <ul>
+            <li><a href="@Href("~/")">トップページ</a></li>
+            <li><a href="#">運営会社</a></li>
+            <li><a href="#">ご利用規約</a></li>
+            <li><a href="#">特定商取引法に基づく表示</a></li>
+            <li><a href="#">プライバシーポリシー</a></li>
+            <li><a href="#">ご利用ガイド</a></li>
+            <li><a href="#">お問い合わせ</a></li>
+            <li><a href="#">よくあるご質問</a></li>
+          </ul>
+        </div>
+        <div class="cell -4of12">
+          <h3>関連リンク</h3>
+          <ul>
+            <li><a href="@LoginUrl()">ログイン</a></li>
+            <li><a href="@LogoutUrl()">ログアウト</a></li>
+            <li><a href="@Href("~/Member/Index")">会員ページ</a></li>
+            <li><a href="@Href("~/Site/Account")">会員登録</a></li>
+          </ul>
+        </div>
+        <div class="cell -4of12">
+          <h3>Test Value</h3>
+          <ul>
+            <li>Request.IsAuthenticated == @Page.Request.IsAuthenticated</li>
+            <li>Current Host => @Page.Request.Url.Host</li>
+            <li>Normal Host => @Page.Template.SecuredHost(false)</li>
+            <li>Secure Host => @Page.Template.SecuredHost(true)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="grid -center">
+        &copy; Commerble Inc.
+      </div>
+    </footer>
+  </main>
+  <script src="//code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/intercooler-js/1.2.3/intercooler.min.js"></script>
+  @RenderSection("ScriptBlock", false)
+</body>
+</html>

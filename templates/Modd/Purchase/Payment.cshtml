@@ -1,0 +1,109 @@
+﻿@{
+  var payment = Page.ViewData.Model as VM.PurchasePayment;
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+
+  // DateTimeを内部でViewData.Evalで取得したときに日時まで引っ張るのをここで防ぐ！
+  Page.ViewData["DeliveryOrder.DeliveryDate"] = payment.DeliveryOrder.DeliveryDate.HasValue ? payment.DeliveryOrder.DeliveryDate.Value.ToString("yyyy/MM/dd") : null; 
+
+  // 決済方法未選択か外部連携の決済の時だけこれね。コンビニは．．．。その時考えれば？
+  if (new []{PaymentMethod.None, PaymentMethod.External}.Contains(payment.Cart.PaymentMethod) && string.IsNullOrWhiteSpace(payment.OrderCustomer.PaymentDetail)) {
+    payment.OrderCustomer.PaymentDetail = "credit";
+  }
+
+  if (payment.Cart.PaymentMethod == PaymentMethod.None) {
+	  payment.Cart.PaymentMethod = PaymentMethod.CashOnDelivery;
+  }
+}
+<h2 class="pageHeading">お支払い方法の選択</h2>
+
+@DisplayViewMessages(viewData)
+
+<div>お支払い方法の選択</div>
+
+<form id="payment" name="payment" action="@Page.Url.RouteUrl("ModdPurchase", new {cart=payment.CartId, action="Payment"} )" method="post">
+  <!-- 商品一覧 -->
+  @Page.Html.Partial("ModdSharedCartItems", payment.Cart)
+
+  @Page.Html.Partial("ModdSharedApplyCampaigns", payment.Cart)
+
+	<table>
+		<caption><p>お支払い情報</p></caption>
+		<tbody>
+			<tr>
+				<th>商品合計（税込）</th>
+				<td>@PrintPrice(payment.Cart.Subtotal)</td>
+			</tr>
+			<tr>
+				<th>送料（税込）</th>
+				<td>@PrintPrice(payment.Cart.DeliveryCharge)</td>
+			</tr>
+			<tr>
+				<th>決済手数料（税込）</th>
+				<td>@PrintPrice(payment.Cart.CacheOnDeliveryCharge)</td>
+			</tr>
+		</tbody>
+	</table>
+					
+	<table>
+		<caption>お届け日時指定サービスのご利用はこちら</caption>
+		<tbody>
+			<tr>
+				<th>お届け日</th>
+				<td>
+          @Page.Html.DropDownList("DeliveryOrder.DeliveryDate", payment.Cart.SelectDeliveryDate(), "最速でお届け", new {})
+          @if (payment.Cart.LastReleaseDate > DateTime.Now) {
+            <text>
+            <br />
+            &nbsp;&nbsp;※発売日が異なる商品を同時（同一ご注文番号の場合）にご予約いただいた場合、<br />
+            &nbsp;発売日が最も遅い商品に合わせて全ての商品をお届けいたします。
+            </text>
+          }
+				</td>
+			</tr>
+			<tr>
+				<th>お届け時間</th>
+				<td>
+          @Page.Html.DropDownList("DeliveryOrder.HourRange", payment.Cart.SelectHourRange(), new {})
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<table>
+		<caption>明細書への金額印字</caption>
+		<tbody>
+			<tr>
+				<th>明細書への金額印字</th>
+				<td>
+          <label>@Page.Html.RadioButton("DeliveryOrder.WrappingType", 2) する</label>
+          <label>@Page.Html.RadioButton("DeliveryOrder.WrappingType", 1) しない</label>
+				</td>
+			</tr>
+			<tr>
+				<th class="fix180">依頼主名</th>
+				<td>
+          @Page.Html.TextBox("DeliveryOrder.SenderName",payment.DeliveryOrder.SenderName, new {@maxlength="20"})
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+  @Page.Html.Partial("ModdSharedPayment", payment.Cart)	
+
+	<table>
+		<caption>ポイント利用</caption>
+		<tbody>
+			<tr>
+				<td>
+					<label>使用可能ポイント:@(payment.Cart.Point)pt</label>
+					<div>@(Page.Html.TextBox("InputUsagePoint", 0, new {min=0,max=payment.Cart.Point,type="number"} ))pt を支払いにあてる</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<div>
+		<a href="@Page.Url.RouteUrl("ModdPurchase", new { cart=payment.CartId, action="Shipping"} )" class="btn btn-default btn-ghost">前へもどる</a>
+    <input type="submit" class="btn btn-primary" value="確認へ進む"/>
+  </div>
+</form>

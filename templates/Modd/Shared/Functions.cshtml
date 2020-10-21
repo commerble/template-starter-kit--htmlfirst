@@ -1,0 +1,32 @@
+﻿@using VM = Crosswarp.Modd.Controllers.ViewModels;
+@using PointBank = Crosswarp.Modd.PointBank;
+@functions {
+  bool HasViewMessages(ViewMessages viewData){
+    return (viewData != null && (viewData.Errors.Count + viewData.Warnings.Count + viewData.Messages.Count > 0) );
+  }
+
+  bool IsIntercooler { get { return Page.Request.Headers.AllKeys.Any(key => key.ToLower() == "x-ic-request"); } }
+
+  /// URL factories
+  string CartInUrl(int item, int? qty = null) {
+    return Page.Url.RouteUrl("ModdDefault", new {controller = "Order", action = "Cart", item, qty});
+  }
+  string CartInUrl(int item, string desc, int? qty = null) {
+    return Page.Url.RouteUrl("ModdDefault", new {controller = "Order", action = "Cart", item, desc, qty});    
+  }
+  string CartInUrl(int item, long reserve, int? qty = null) {
+    return Page.Url.RouteUrl("ModdDefault", new {controller = "Order", action = "Cart", item, reserve, qty});    
+  }
+  string CartInUrl(int item, long reserve, string desc, int? qty = null) {
+    return Page.Url.RouteUrl("ModdDefault", new {controller = "Order", action = "Cart", item, reserve, desc, qty});    
+  }
+  string ReserveUrl(int item, int? requestAmount = null) {
+    return Page.Url.RouteUrl("ModdDefault", new {controller = "Member", action = "CreateNotice", item, requestAmount});
+  }
+　string LoginUrl(string returnUrl = null) {
+    return returnUrl == null ? Page.Template.GetLoginUrl() : Page.Url.RouteUrl("ModdDefault", new {controller = "Site", action = "Login", returnUrl});    
+  }
+  string LogoutUrl() {
+    return Page.Url.RouteUrl("ModdDefault", new {controller = "Site", action = "Logout", returnUrl = Href("~/")});    
+  }
+}

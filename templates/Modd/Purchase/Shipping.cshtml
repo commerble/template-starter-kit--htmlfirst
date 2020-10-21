@@ -1,0 +1,103 @@
+﻿@{
+  var shipping = Page.ViewData.Model as VM.PurchaseShipping; 
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+  var hasDestination = !string.IsNullOrEmpty(shipping.DeliveryOrderAddress.ToString());
+}
+
+<h2>お届け先の選択</h2>
+
+@DisplayViewMessages(viewData)
+
+<div>お届け先の選択</div>
+
+<form id="shipping" name="shipping" action="@Page.Url.RouteUrl("ModdPurchase", new {cart=shipping.CartId, action="Shipping"} )" method="post">
+	<div>
+    @(Page.Html.Partial("ModdSharedCartItems", shipping.Cart))
+	</div>
+
+  @(Page.Html.Partial("ModdSharedApplyCampaigns", shipping.Cart))
+
+	<table>
+		<caption>お客様情報</caption>
+		<tbody>
+    @if(shipping.IsAnonymous) {
+      @:@(Page.Html.PartialEx("ModdSharedAddressEditor", 
+		          shipping.OrderCustomerOrderedAddress, 
+		          new {target="OrderCustomerOrderedAddress", command="zipsearch_customer", commandUrl=Page.Url.RouteUrl("ModdPurchase", new {cart=shipping.CartId, action="Shipping"} )} ))
+    <tr>
+    <th>メールアドレス</th>
+      <td>
+        @(Page.Html.TextBox("Customer.EmailAddr", shipping.Customer.EmailAddr ?? "", new {@maxlength="100"} ))
+        @(Page.Html.ValidationMessage("Customer.EmailAddr", "*")) （半角）
+      </td>
+    </tr>
+    } else {
+      if(shipping.User.Account.ExtendProperties.AddressId == 0) {
+        @:@(Page.Html.PartialEx("ModdSharedAddressEntry", 
+		            shipping.OrderCustomerOrderedAddress, 
+		            new {target="OrderCustomerOrderedAddress", command="zipsearch_customer"} ))
+      } else {
+        @:@(Page.Html.Partial("ModdSharedAddressDisplay", shipping.OrderCustomerOrderedAddress ))
+      }
+    <tr>
+      <th>メールアドレス</th>
+      <td>
+        @(Page.Html.TextBox("Customer.EmailAddr", shipping.Customer.EmailAddr ?? "", new {@maxlength="100"} ))
+        @(Page.Html.ValidationMessage("Customer.EmailAddr", "*")) （半角）
+      </td>
+    </tr>
+    }
+		</tbody>
+	</table>
+	<template id="destination-tmpl">
+		<table >
+			<caption>お届け先情報</caption>
+			<tbody>
+				<tr>
+					<td>&nbsp;</td>
+					<td>
+					@if(!shipping.IsAnonymous) {
+						@:@(Page.Html.DropDownList("DeliveryOrderAddress.AddressId", 
+												shipping.MemberAddressList.ToSelectListItems(shipping.IsAnonymous, shipping.DeliveryOrderAddress.AddressId), new {ic_action="selectAddress"}))
+					}
+					</td>
+				</tr>
+				@(Page.Html.PartialEx("ModdSharedAddressEditor", shipping.DeliveryOrderAddress, new {target="DeliveryOrderAddress", command="zipsearch_shipping", commandUrl=Page.Url.RouteUrl("ModdPurchase", new {cart=shipping.CartId, action="Shipping"} )} ))
+			</tbody>
+		</table>
+		<a href="@Page.Url.RouteUrl("ModdDefault", new { Controller="Order",Action="Cart"})" class="btn btn-default btn-ghost">前へもどる</a>
+		<input type="submit" name="next_copy" class="btn btn-primary btn-ghost" value="お客様住所へお届け" />
+		<input type="submit" name="next" class="btn btn-primary" value="お支払い方法に進む" />
+	</template>
+	<div id="destination" @if(hasDestination){<text>ic-get-from="#destination-tmpl" ic-trigger-on="load"</text>}>
+		<a href="@Page.Url.RouteUrl("ModdDefault", new { Controller="Order",Action="Cart"})" class="btn btn-default btn-ghost">前へもどる</a>
+		<a class="btn btn-primary btn-ghost" ic-get-from="#destination-tmpl" ic-target="#destination" ic-swap-style="replace">お届け先を別に指定する</a>
+		<input type="submit" name="@(hasDestination?"next":"next_copy")" class="btn btn-primary" value="お支払い方法に進む" />
+	</div>
+</form>
+
+@section ScriptBlock {
+<script type="text/javascript">
+(function() {
+	var addrs = @Raw(shipping.MemberAddressList.ToJson(shipping.IsAnonymous));
+	$.fn.selectAddress = function () {
+		var id = $(this).val();
+		var addr = addrs.find(a => a.AddressId+"" == id);
+			
+		if(addr == null)
+			return;
+			
+		$("#DeliveryOrderAddress_Recipientfirstname").val(addr.Recipientfirstname || "");
+		$("#DeliveryOrderAddress_Recipientlastname").val(addr.Recipientlastname || "");
+		$("#DeliveryOrderAddress_Recipientfirstnamekana").val(addr.Recipientfirstnamekana || "");
+		$("#DeliveryOrderAddress_Recipientlastnamekana").val(addr.Recipientlastnamekana || "");
+		$("#DeliveryOrderAddress_ZipCode").val(addr.ZipCode || "");
+		$("#DeliveryOrderAddress_Pref").val(addr.Pref || "");
+		$("#DeliveryOrderAddress_City").val(addr.City || "");
+		$("#DeliveryOrderAddress_Street").val(addr.Street || "");
+		$("#DeliveryOrderAddress_Building").val(addr.Building || "");
+		$("#DeliveryOrderAddress_Tel").val(addr.Tel || "");
+	}
+}())
+</script>
+}

@@ -1,0 +1,23 @@
+﻿@{
+  var account = Page.ViewData.Model as VM.Account;
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages; 
+}
+@DisplayViewMessages(viewData)
+
+<h2>会員情報変更 - 確認</h2>
+
+<form action="@Page.Template.SecuredLink("ModdDefault", new {controller="Member", action="Account"})" method="post">
+	氏名 @(account.LastName + " " + account.FirstName)<br />
+	氏名カナ @(account.LastNameKana + " " + account.FirstNameKana)<br />
+	<br />
+	メール購読 @(account.Subscribe ? "する" : "しない")<br />
+	生年月日 @account.Birthday.Value.ToString("yyyy年MM月dd日")<br />
+	性別 @(account.Sex == HumanSexes.Male ? "男性" : "女性")
+
+	@Raw(Page.Html.ModelToObjectState("model",account))
+	@(Page.Html.SessionAntiForgeryToken())
+
+	<p>
+	<input type="submit" name="update" value="登録" class="btn btn-success" />
+	<p>
+</form>

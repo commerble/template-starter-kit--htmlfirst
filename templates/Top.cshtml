@@ -1,0 +1,97 @@
+@using System.Web.Helpers
+@{ 
+  ViewBag.PageTitle = "Top Page";
+
+  var stocks    = new int[]{ /*3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14*/ };
+  var notstocks = new int[]{};
+  var preorders = new int[]{};
+  var sets      = new int[]{};
+  var points    = new int[]{};
+  var reserves  = new int[]{};
+}
+<h2>テスト商品一覧</h2>
+
+<div class="grid">
+  <div class="cell -4of12">
+    <h3>在庫あり商品</h3>
+    <ul>
+      @foreach(var item in stocks ) {
+        <li id="item@(item)">
+          <a href="@CartInUrl(item)">@Page.Template.GetProduct(item).Name</a>
+          <div class="info">@PrintPrice(Page.Template.GetUnitPriceWithTax(item))</div>
+        </li>
+      }
+    </ul>
+  </div>
+  <div class="cell -4of12">
+    <h3>在庫なし商品</h3>
+    <ul>
+      @foreach(var item in notstocks ) {
+        <li id="item@(item)">
+          <a href="@CartInUrl(item)">@Page.Template.GetProduct(item).Name</a>
+          <div class="info">@PrintPrice(Page.Template.GetUnitPriceWithTax(item))</div>
+        </li>
+      }
+    </ul>
+  </div>
+  <div class="cell -4of12">
+    <h3>予約商品</h3>
+    <ul>
+      @foreach(var item in preorders ) {
+        <li id="item@(item)">
+          <a href="@CartInUrl(item)">@Page.Template.GetProduct(item).Name</a>
+          <div class="info">@PrintPrice(Page.Template.GetUnitPriceWithTax(item))</div>
+        </li>
+      }
+    </ul>
+  </div>
+</div>
+<div class="grid">
+  <div class="cell -4of12">
+    <h3>セット商品</h3>
+    <ul>
+      @foreach(var item in sets ) {
+        <li id="item@(item)">
+          <a href="@CartInUrl(item)">@Page.Template.GetProduct(item).Name</a>
+          <div class="info">@PrintPrice(Page.Template.GetUnitPriceWithTax(item))</div>
+        </li>
+      }
+    </ul>
+  </div>
+  <div class="cell -4of12">
+    <h3>ポイント専売</h3>
+    <ul>
+      @foreach(var item in points ) {
+        <li id="item@(item)">
+          <a href="@CartInUrl(item)">@Page.Template.GetProduct(item).Name</a>
+          <div class="info">@PrintPrice(Page.Template.GetUnitPriceWithTax(item))</div>
+        </li>
+      }
+    </ul>
+  </div>
+  <div class="cell -4of12">
+    <h3>仮予約</h3>
+    <ul>
+      @foreach(var item in reserves ) {
+        <li id="item@(item)">
+          <a href="@ReserveUrl(item)">@Page.Template.GetProduct(item).Name</a>
+          <div class="info">@PrintPrice(Page.Template.GetUnitPriceWithTax(item))</div>
+        </li>
+      }
+    </ul>
+  </div>
+</div>
+
+<h2>Post Test</h2>
+@{
+  if (IsPost){
+    AntiForgery.Validate();
+  }
+}
+<ul>
+  <li>IsPost == @IsPost</li>
+</ul>
+<form method="post">
+  @Raw(AntiForgery.GetHtml())
+  <input type="submit" value="ポスト" class="btn btn-default btn-ghost"/>
+</form>

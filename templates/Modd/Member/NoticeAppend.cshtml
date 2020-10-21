@@ -1,0 +1,45 @@
+﻿@{
+  var stats = new Dictionary<ReserveRequestStatus,string>{
+	  {ReserveRequestStatus.Accept, "未入荷"},
+	  {ReserveRequestStatus.Allocated, "入荷"},
+	  {ReserveRequestStatus.Purchased, "購入済"},
+	  {ReserveRequestStatus.Cancel, "キャンセル"}
+  };
+	var notice = Page.ViewData.Model as VM.NoticeAppend; 
+}
+
+<h2 class="pageHeading">仮予約登録のご確認</h2>
+<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="CreateNotice", item=notice.ProductId })" method="post">
+  <p>以下の内容でよろしければ「登録する」ボタンをクリックしてください。仮予約を登録します。</p>
+	<table>
+		<thead>
+			<tr>
+				<th>商品番号</th>
+				<th>商品名</th>
+				<th>発売日</th>
+				<th>販売価格</th>
+				<th>数量</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td align="center">@notice.Product.ExternalId</td>
+				<td><a href="#" target="_blank">@notice.Product.Name.Trim()</a></td>
+				<td>??</td>
+				<td>@string.Format("{0:#,##0}", Page.Template.GetUnitPriceWithTax(notice.ProductId)) 円(税込)</td>
+				<td>@(Page.Html.DropDownList("RequestAmount", notice.SelectAmount() ))</td>
+			</tr>
+      <tr>
+	      <th>商品合計</th>
+	      <th colspan="2">&nbsp;</th>
+	      <th><input type="submit" name="recalc" value="再計算" class="btn btn-primary btn-ghost"></th>
+	      <th>@string.Format("{0:#,##0}", Page.Template.GetUnitPriceWithTax(notice.Product.ProductId)*notice.RequestAmount) 円</th>
+      </tr>
+		</tbody>
+	</table>
+	<div>
+		<a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Notices"})" class="btn btn-default btn-ghost">仮予約一覧へ</a>
+		<input type="submit" name="commit" value="登録する" class="btn btn-success"/>
+	</div>
+  @Page.Html.SessionAntiForgeryToken()
+</form>

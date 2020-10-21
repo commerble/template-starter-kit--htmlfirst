@@ -1,0 +1,32 @@
+﻿@{
+  var customer = Page.ViewData.Model as VM.HistoryCustomer; 
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+}
+@DisplayViewMessages(viewData)
+
+<h2>お客様情報の変更</h2>
+<p>メールアドレスを変更後「確認する」ボタンをクリックしてください。</p>
+
+<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=customer.Cart.OrderId} )" method="post">
+
+	<table>
+		<caption>お客様情報</caption>
+		<tbody>
+    @(Page.Html.Partial("ModdSharedAddressDisplay", customer.OrderCustomer.OrderedAddress ))
+    <tr>
+      <th>メールアドレス</th>
+      <td>
+      @(Page.Html.TextBox("OrderCustomer.EmailAddr", customer.OrderCustomer.EmailAddr ?? "", new {@maxlength="100"} ) )
+      @(Page.Html.ValidationMessage("OrderCustomer.EmailAddr", "*"))（半角）
+      </td>
+    </tr>
+		</tbody>
+	</table>
+  
+  @(Page.Html.HttpMethodOverride("put"))
+	<div>
+    <input type="submit" name="customer" value="確認する" class="btn btn-success" />
+	</div>
+  <a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=customer.Cart.OrderId} )">注文詳細へもどる</a>
+
+</form>

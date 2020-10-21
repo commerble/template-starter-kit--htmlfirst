@@ -1,0 +1,124 @@
+﻿@{
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages; 
+  var model= Page.ViewData.Model as VM.Account;
+}
+@DisplayViewMessages(viewData)
+
+<h2>アカウント情報</h2>
+<section>
+  <h3>ログインID変更</h3>
+
+  <form action="@Page.Template.SecuredLink("ModdDefault", new {controller="Member", action="UserName"})" method="post">
+    <table>
+      <tr>
+        <th>ログインID</th>
+        <td>@(Page.Html.TextBox("UserName"))</td>
+      </tr>
+    </table>
+    <input type="submit" name="confirm" value="変更" class="btn btn-default btn-ghost"/>
+  </form>
+</section>
+
+<section>
+  <h3>会員情報</h3>
+
+  <form action="@Page.Template.SecuredLink("ModdDefault", new {controller="Member", action="Account"})" method="post">
+    <table>
+      <tr>
+        <th>氏名</th>
+        <td>@(Page.Html.TextBox("LastName")) @(Page.Html.TextBox("FirstName"))</td>
+      </tr>
+      <tr>
+        <th>氏名カナ</th>
+        <td>@(Page.Html.TextBox("LastNameKana")) @(Page.Html.TextBox("FirstNameKana"))</td>
+      </tr>
+      <tr>
+        <th>メール購読</th>
+        <td>
+          <label><input name="Subscribe" type="radio" value="true" @(model.Subscribe==true?"checked":"")> 希望する</label>				
+				  <label><input name="Subscribe" type="radio" value="false" @(model.Subscribe==false?"checked":"")> 希望しない</label>
+        </td>
+      </tr>
+      <tr>
+        <th>生年月日</th>
+        <td>
+          @(Page.Html.DropDownList("BirthdayY", 
+                          Enumerable.Range(DateTime.Today.Year-99,100)
+                                    .Select(i=>new SelectListItem{ Value=i+"", Text=i+"" }), "-" ))
+          年&nbsp;
+          @(Page.Html.DropDownList("BirthdayM", 
+                                Enumerable.Range(1,12)
+                                          .Select(i=>new SelectListItem{ Value=i+"", Text=i+"" }), "-" ))
+          月&nbsp;
+          @(Page.Html.DropDownList("BirthdayD", 
+                                Enumerable.Range(1,31)
+                                          .Select(i=>new SelectListItem{ Value=i+"", Text=i+"" }), "-" ))
+          日
+        </td>
+      </tr>
+      <tr>
+        <th>性別</th>
+        <td>@(Page.Html.RadioButton("Sex",HumanSexes.Male)) 男性 @(Page.Html.RadioButton("Sex",HumanSexes.Female)) 女性</td>
+      </tr>
+    </table>
+    <input type="submit" name="confirm" value="変更" class="btn btn-default btn-ghost"/>
+  </form>
+</section>
+
+<section>
+  <h3>会員住所</h3>
+
+  <form action="@Page.Template.SecuredLink("ModdDefault", new {controller="Member", action="AccountAddress"})" method="post">
+    <table>
+    <tr>
+      <th>郵便番号</th>
+      <td>
+        @(Page.Html.TextBox("Address.ZipCode", model.Address.ZipCode, new {maxlength="7"}))
+        @(Page.Html.ValidationMessage("Address.ZipCode","*"))
+        <button class="btn btn-default" ic-post-to="@Href("~/Member/AccountAddress")" ic-target="#Member_Zip_Search_Result" ic-include='{"zipsearch":"zipsearch"}'>
+          検索 <i class="fa fa-spinner fa-spin ic-indicator" style="display:none"></i>
+        </button>
+        （-で区切らず半角数字で入力し、「検索」ボタンを押して下さい。　※例：1070052）
+        <div id="Member_Zip_Search_Result">
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <th>都道府県</th>
+      <td>
+        @(Page.Html.TextBox("Address.Pref", model.Address.Pref, new { @readonly="readonly"}))
+        @(Page.Html.ValidationMessage("Address.Pref","*")) （郵便番号検索で自動的に挿入されます。）
+      </td>
+    </tr>
+    <tr>
+      <th>市区町村</th>
+      <td>
+        @(Page.Html.TextBox("Address.City", model.Address.City, new { @readonly="readonly"}))
+        @(Page.Html.ValidationMessage("Address.City","*")) （郵便番号検索で自動的に挿入されます。）
+      </td>
+    </tr>
+    <tr>
+      <th>番地</th>
+      <td>
+        @(Page.Html.TextBox("Address.Street", model.Address.Street, new { @maxlength="64"}))
+        @(Page.Html.ValidationMessage("Address.Street","*")) （全角　※例：１－１－１）
+      </td>
+    </tr>
+    <tr>
+      <th>アパート・マンション名</th>
+      <td>
+        @(Page.Html.TextBox("Address.Building", model.Address.Building, new { @maxlength="64"}))
+        @(Page.Html.ValidationMessage("Address.Building","*")) （全角　※例：マンション１号室）
+      </td>
+    </tr>
+    <tr>
+      <th>お電話番号</th>
+      <td>
+        @(Page.Html.TextBox("Address.Tel", model.Address.Tel, new { @maxlength="11" }))
+        @(Page.Html.ValidationMessage("Address.Tel","*")) （-で区切らずに半角数字で入力して下さい。　※例：0312345678）
+      </td>
+    </tr>
+    </table>
+    <input type="submit" name="confirm" value="変更" class="btn btn-default btn-ghost"/>
+  </form>
+</section>

@@ -1,0 +1,84 @@
+﻿@{
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+  var orders = Page.ViewData.Model as IEnumerable<PurchaseOrder>;
+
+	var messageStatus = new Dictionary<OrderStatus,string>{
+		{OrderStatus.Accept,       "注文完了"},
+		{OrderStatus.UnAllocate,   "注文完了"},
+		{OrderStatus.PartAllocate, "出荷準備中"},
+		{OrderStatus.Allocated,    "出荷準備中"},
+		{OrderStatus.ShipIndicate, "出荷準備中"},
+		{OrderStatus.Ship,         "出荷完了"},
+		{OrderStatus.Arrival,      "お届け完了"},
+		{OrderStatus.Booked,       "お届け完了"},
+		{OrderStatus.Cancel,       "キャンセル"},
+		{OrderStatus.ShipSuspend,  "出荷準備中"}
+	};
+	
+	var pointFixed = new List<OrderStatus>{OrderStatus.Arrival,OrderStatus.Booked};
+	
+	bool isGuest = false;
+
+	int page, eachPage = 10;
+	if( !Int32.TryParse((Page.Request.QueryString["page"] ?? "0"), out page)){
+		page = 0;
+	}
+	var itemCount = orders.Count();
+  var itemList = orders.Skip(page*eachPage);
+}
+@DisplayViewMessages(viewData)
+
+<h2>注文履歴・配送状況の一覧</h2>
+
+@DisplayPagerSummury(page, itemCount, eachPage)
+@DisplayPager(page, itemCount, eachPage)
+
+@if(!itemList.Any()) {
+  <text>注文履歴はありません。</text>
+} else {
+  <table class="commonStyle">
+	  <thead>
+		  <tr>
+			  <td>注文番号</td>
+			  <td>注文日</td>
+			  <td>お支払い金額</td>
+			  <td>状況</td>
+			  <td>&nbsp;</td>
+			  <td>&nbsp;</td>
+		  </tr>
+	  </thead>
+	  <tbody>
+    @foreach(var order in orders.Skip(page*eachPage).Take(eachPage) ) {
+      isGuest = order.OrderCustomer.IsGuest;
+
+	    <tr>
+		    <td>@order.OrderId</td>
+		    <td>@string.Format("{0}", order.OrderDate)</td>
+		    <td>@PrintPrice(order.TotalPayment) (税込)</td>
+		    <td>
+          @(messageStatus.ContainsKey(order.OrderStatus) ?
+              ( order.OrderStatus == OrderStatus.Arrival ? ( order.ReturnDate == null ? messageStatus[order.OrderStatus] : "返品済み" ) :
+              messageStatus[order.OrderStatus] ) : order.OrderStatus.ToString())
+        </td>
+		    <td><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=order.OrderId} )">[詳細]</a></td>
+		    <td>
+          @if (order.CanCancel) {
+            <a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="HistoryCancel", id=order.OrderId} )">[キャンセル]</a>
+          }
+        </td>
+	    </tr>
+    }
+    </tbody>
+  </table>
+}
+
+@DisplayPagerSummury(page, itemCount, eachPage)
+@DisplayPager(page, itemCount, eachPage)
+
+<div>
+@if (isGuest) {
+  <a href="@Page.Url.RouteUrl("Top")" class="btn btn-default btn-ghost">トップページへ</a>
+} else {
+  <a href="@Page.Url.RouteUrl("ModdDefault", new { Controller="Member",Action="Index"})" class="btn btn-default btn-ghost">マイページトップへ</a>
+}
+</div>

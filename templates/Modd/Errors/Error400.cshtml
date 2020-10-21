@@ -1,0 +1,18 @@
+﻿@{
+	var errorType = 0;
+	var controller = Page.ViewContext.RequestContext.RouteData.Values["controller"] as string;
+
+	if (!string.IsNullOrEmpty(controller) && controller=="Purchase"){
+		errorType = 1;//警告会員のため、購入不可。
+	}
+}
+
+@if (errorType == 0) {
+	<h2>400 Bad Request : 不正な操作</h2>
+	<p>不正な操作をされました。先のページにすすむことは出来ません。</p>
+} else {
+  	<h2>400 Bad Request : ご購入が出来ません。</h2>
+	<p>お客様のIDでは、現在ご購入ができません。</p>
+}
+
+<div><a href="javascript:history.back();"><span>もどる</span></a></div>

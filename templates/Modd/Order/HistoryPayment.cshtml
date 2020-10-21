@@ -1,0 +1,24 @@
+﻿@{
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+  var payment = Page.ViewData.Model as VM.HistoryPayment;
+
+	bool isGuest = payment.Cart.OrderCustomer.IsGuest;
+}
+@DisplayViewMessages(viewData)
+
+<h2>お支払い方法の変更</h2>
+<p>お支払い方法を変更後「確認する」ボタンをクリックしてください。</p>
+
+<form id="payment" action="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=payment.Cart.OrderId} )" method="post">
+
+	@Page.Html.Partial("ModdSharedPayment", payment.Cart)
+
+  <p>※指定した配送先が代引きをご利用いただけない地域の場合、代引きを選択できません。</p>
+
+  @(Page.Html.HttpMethodOverride("put"))
+	<div>
+			<input type="hidden" name="payment" value="exec">
+      <input type="submit" value="確認する" class="btn btn-success"/>
+  </div>
+	<div><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=payment.Cart.OrderId} )">注文詳細へもどる</a></div>
+</form>

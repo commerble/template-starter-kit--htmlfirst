@@ -1,0 +1,32 @@
+﻿@{
+  Layout = null;
+  var cartId = Page.ViewData["cartId"];
+  var zipList = Page.ViewData.Model as List<ZipCodeAddress>;
+}
+<section class="modal">
+  <div class="modal__content">
+    @if (!zipList.Any())
+    {
+      <p>郵便番号に該当する住所が見つかりませんでした。</p>
+      <form action="@Page.Url.RouteUrl("ModdPurchase", new {cart=cartId, action="Shipping"} )" method="get">
+        <input type="submit" value="戻る" class="btn btn-default btn-ghost"/>
+      </form>
+    }
+    else
+    {
+      foreach (var zip in zipList)
+      {
+        <form action="@Page.Url.RouteUrl("ModdPurchase", new {cart=cartId, action="ZipSelect"} )" method="post">
+          <input type="submit" value="選択" class="btn btn-default btn-ghost"/>
+          〒 @zip.ZipCode @zip.Prefecture @zip.City @zip.Street
+          @Page.Html.Hidden("ZipCode", zip.ZipCode)
+          @Page.Html.Hidden("Pref", zip.Prefecture)
+          @Page.Html.Hidden("City", zip.City)
+          @Page.Html.Hidden("Street", zip.Street)
+
+          @Page.Html.Hidden("target")
+        </form>
+      }
+    }
+  </div>
+</section>

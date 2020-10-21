@@ -1,0 +1,53 @@
+﻿@{
+  var addresses = Page.ViewData.Model as IEnumerable<UserAddress>;
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages; 
+
+	int page, eachPage = 10;
+	if( !Int32.TryParse((Page.Request.QueryString["page"] ?? "0"), out page)){
+		page = 0;
+	}
+	var itemCount = addresses.Count();
+  var itemList = addresses.Skip(page*eachPage);
+}
+@DisplayViewMessages(viewData)
+
+<h2 class="pageHeading">お届け先一覧</h2>
+
+<div>
+	<a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="CreateAddress" })" class="btn btn-primary">新規登録</a>
+</div>
+
+@DisplayPagerSummury(page, itemCount, eachPage)
+@DisplayPager(page, itemCount, eachPage)
+
+@if (!itemList.Any()){
+	<text>配送先住所は登録されていません。</text>
+} else {
+<table>
+	<thead>
+		<tr>
+			<td>お名前</td>
+			<td>ご住所</td>
+			<td>お電話番号</td>
+			<td>&nbsp;</td>
+		</tr>
+	</thead>
+	<tbody>
+
+	@foreach (var address in itemList.Take(eachPage) ) {
+		<tr>
+			<td>@address.Address.Recipientlastname &nbsp; @address.Address.Recipientfirstname</td>
+			<td>@string.Format("{0}{1}{2}{3}", address.Address.Pref, address.Address.City, address.Address.Street, address.Address.Building )</td>
+			<td>@address.Address.Tel</td>
+			<td><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Member", action="Addresses", id=address.AddressId })">[詳細]</a></td>
+		</tr>
+	}
+	</tbody>
+</table>
+}
+
+@DisplayPager(page, itemCount, eachPage)
+
+<p>
+	<a href="@Page.Url.RouteUrl("ModdDefault", new { Controller="Member",Action="Index"})" class="btn btn-default btn-ghost">マイページトップへ</a>
+</p>

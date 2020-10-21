@@ -1,0 +1,15 @@
+@{
+  var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+}
+@DisplayViewMessages(viewData)
+
+<h2>パスワードリカバリー</h2>
+
+<form name="site_login" action="@Page.Url.RouteUrl("ModdDefault", new { controller="Site",action="Recovery"})" method="post">
+	ログインID @(Page.Html.TextBox("UserName")) (メールアドレス)
+
+	<p>
+	<input type="submit" name="request" value="送信" />
+  @(Page.Html.SessionAntiForgeryToken())
+	<p>
+</form>

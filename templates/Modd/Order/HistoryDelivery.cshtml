@@ -1,0 +1,57 @@
+﻿@{
+	var delivery = Page.ViewData.Model as VM.HistoryDelivery;
+	var viewData = Page.ViewData[BasicController.ViewMessageKey] as ViewMessages;
+	delivery.Cart.SpecifiableDeliveryDateRangeStart = DateTime.Now.Date.AddDays(2);
+	delivery.Cart.SpecifiableDeliveryDateRangeEnd = DateTime.Now.Date.AddDays(16);
+}
+@DisplayViewMessages(viewData)
+
+<h2>お届け方法の変更</h2>
+<p>お届け方法を変更後「確認する」ボタンをクリックしてください。</p>
+
+<form action="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=delivery.Cart.OrderId} )" method="post">
+
+	<table>
+		<caption>お届け日時指定</caption>
+		<tbody>
+			<tr>
+				<th>お届け日</th>
+				<td>
+          @(Page.Html.DropDownList("DeliveryOrder.DeliveryDate", delivery.Cart.SelectDeliveryDate(delivery.DeliveryOrder.DeliveryDate), "指定なし", new {}))
+				</td>
+			</tr>
+			<tr>
+				<th>お届け時間</th>
+				<td>
+          @(Page.Html.DropDownList("DeliveryOrder.HourRange", delivery.Cart.SelectHourRange(delivery.DeliveryOrder.HourRange), "指定なし", new {}))
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<table>
+		<caption>明細書への金額印字</caption>
+		<tbody>
+			<tr>
+				<th>明細書への金額印字</th>
+				<td>
+          <div>@(Page.Html.RadioButton("DeliveryOrder.WrappingType", 1))しない</div>
+          <div>@(Page.Html.RadioButton("DeliveryOrder.WrappingType", 2))する</div>
+				</td>
+			</tr>
+			<tr>
+				<th>依頼主名</th>
+				<td>
+          @(Page.Html.TextBox("DeliveryOrder.SenderName",delivery.DeliveryOrder.SenderName, new {}))
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+  @(Page.Html.HttpMethodOverride("put"))
+	<div>
+    <input type="submit" name="delivery" value="確認する" class="btn btn-success"/>
+	</div>
+  <a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="History", id=delivery.Cart.OrderId} )">注文詳細へもどる</a>
+
+</form>

@@ -1,0 +1,91 @@
+﻿@helper DisplayViewMessages(ViewMessages viewData){
+  if (viewData != null && (viewData.Errors.Count + viewData.Warnings.Count + viewData.Messages.Count > 0) ) {
+	  var messageError = new Dictionary<string,string>{};
+	
+    // 下記はエラー表示を無視する設定をしている。カートも同時に修正する場合もあるので注意！
+	  var exceptErrors = new List<string>{
+	    "DeliveryDateError",
+	    "ItemNotFound",
+	    "SalesDateOutOfRangeBefore",
+	  };
+	  var errors = viewData.Errors.Distinct().Where(m => !exceptErrors.Any(e=>m.StartsWith(e)));
+
+    foreach(var msg in errors ) {
+	    var msgParts = msg.Split('\t').Concat(new []{"",""}).ToArray();
+	    var msgKey = msgParts[0].Trim();
+	    var msgFormat = messageError.ContainsKey(msgKey) ? messageError[msgKey] : msg;
+	    var errorMessage = string.Format(msgFormat, msgParts[1], msgParts[2]);
+
+	    <div class="alert alert-error">@errorMessage</div>
+    }
+
+    foreach( var msg in viewData.Warnings ) {
+			<div class="alert alert-warning">
+      	@(messageError.ContainsKey(msg.Trim()) ? messageError[msg.Trim()] : msg) <br />
+			</div>
+    }
+
+    foreach(var msg in viewData.Messages ){
+			<div class="alert alert-info">
+	    	@(messageError.ContainsKey(msg.Trim()) ? messageError[msg.Trim()] : msg)
+			</div>
+    }
+
+    if (viewData == null){
+	    @:@(Page.Html.ValidationSummary()))
+    }
+  }
+}
+
+@helper DisplayPagerSummury(int currentPage,int itemCount,int itemPerPage){
+
+	int itemCountFrom, itemCountTo;
+	int pageCount;
+	
+	pageCount = itemCount / itemPerPage + ((itemCount % itemPerPage == 0) ? 0 : 1);
+	itemCountFrom = currentPage* itemPerPage +1 ;
+	itemCountTo = ((currentPage+1) == pageCount) ? itemCount : (currentPage+1) * itemPerPage;
+	
+	<div>
+		<p>全 @itemCount 件中、@itemCountFrom ～ @itemCountTo 件目を表示しています。</p>
+	</div>
+}
+
+@helper DisplayPager(int currentPage,int itemCount,int itemPerPage){
+
+	int itemCountFrom, itemCountTo;
+	IEnumerable<int> listNum;
+	int pageCount;
+	bool pageFirst, pageLast;
+	
+	
+	pageCount = itemCount / itemPerPage + ((itemCount % itemPerPage == 0) ? 0 : 1);
+	itemCountFrom = currentPage* itemPerPage +1 ;
+	itemCountTo = ((currentPage+1) == pageCount) ? itemCount : (currentPage+1) * itemPerPage;
+	
+	pageFirst = (currentPage== 0) ? true : false;
+	pageLast = pageCount == 0 ? true : ( ((currentPage+1) == pageCount) ? true : false);
+	
+	listNum = Enumerable.Range(0,pageCount);
+
+	<div>
+	@if (pageFirst) { <a>＜前へ</a> } else { <a href="?page=@currentPage-1">＜前へ</a> }
+	@foreach(var paging in listNum) {
+	  if (currentPage != paging) { 
+	  	<a href="?page=@paging">@(paging+1)</a>
+	  } else {
+	   	<a class="selected">@(paging+1)</a>
+	  }
+	}
+	@if (pageLast) { <a>次へ＞</a> } else { <a href="?page=@currentPage+1">次へ＞</a> }
+	</div>
+}
+
+@helper PrintPrice(decimal price) {
+	<text>@price.ToString("N0") 円</text>
+}
+
+@helper PrintDate(DateTime date) {
+	var dayOfWeek = date.ToString("dddd", new System.Globalization.CultureInfo("ja-JP"));
+	<text>@($"{date:yyyy年MM月dd日}({dayOfWeek})")</text>
+}
