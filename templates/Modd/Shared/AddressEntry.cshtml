@@ -1,8 +1,10 @@
 ﻿@{
 	var address = (Page.ViewData.Model as Address) ?? new Address();
 	var target = string.Format("{0}.", Page.ViewData["target"]);
-	var command = string.Format("{0}", Page.ViewData["command"]);
 	var prefix = string.Format("{0}_", Page.ViewData["target"]);
+	var command = string.Format("{0}", Page.ViewData["command"]);
+	var commandUrl = Page.ViewData["commandUrl"];
+	var commandMethod = "ic-" + (Page.ViewData["commandMethod"] as string ?? "post") + "-to";
 }
 <tr>
 	<th>お名前</th>
@@ -21,11 +23,10 @@
 	<td>
 		@(Page.Html.TextBox(target + "ZipCode", address.ZipCode, new {@maxlength="7", pattern="[0-9]{7}", title="-で区切らず半角数字で入力してください。※例：1070052"}))
 		@(Page.Html.ValidationMessage(target + "ZipCode","*"))
-		<button class="zip-search btn btn-default" name="@command" ic-post-to="@Href("~/Purchase/1/Shipping")" ic-target="#@(prefix)Zip_Search_Result">
-			検索 <i class="fa fa-spinner fa-spin ic-indicator" style="display:none"></i>
+		<button class="btn btn-default" @(commandMethod)="@commandUrl" ic-target="#@(prefix)zipsearch" ic-include='{"@command":"@command"}'>
+			検索 <span class="ic-indicator" style="display:none">中</span>
 		</button>
-		<div id="@(prefix)Zip_Search_Result">
-		</div>
+		<div id="@(prefix)zipsearch"></div>
 	</td>
 </tr>
 <tr>

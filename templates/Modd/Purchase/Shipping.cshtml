@@ -35,7 +35,7 @@
       if(shipping.User.Account.ExtendProperties.AddressId == 0) {
         @:@(Page.Html.PartialEx("ModdSharedAddressEntry", 
 		            shipping.OrderCustomerOrderedAddress, 
-		            new {target="OrderCustomerOrderedAddress", command="zipsearch_customer"} ))
+		            new {target="OrderCustomerOrderedAddress", command="zipsearch_customer", commandUrl=Page.Url.RouteUrl("ModdPurchase", new {cart=shipping.CartId, action="Shipping"})} ))
       } else {
         @:@(Page.Html.Partial("ModdSharedAddressDisplay", shipping.OrderCustomerOrderedAddress ))
       }
@@ -62,7 +62,7 @@
 					}
 					</td>
 				</tr>
-				@(Page.Html.PartialEx("ModdSharedAddressEditor", shipping.DeliveryOrderAddress, new {target="DeliveryOrderAddress", command="zipsearch_shipping", commandUrl=Page.Url.RouteUrl("ModdPurchase", new {cart=shipping.CartId, action="Shipping"} )} ))
+				@(Page.Html.PartialEx("ModdSharedAddressEditor", shipping.DeliveryOrderAddress, new {target="DeliveryOrderAddress", command="zipsearch_shipping", commandUrl=Page.Url.RouteUrl("ModdPurchase", new {cart=shipping.CartId, action="Shipping"})} ))
 			</tbody>
 		</table>
 		<a href="@Page.Url.RouteUrl("ModdDefault", new { Controller="Order",Action="Cart"})" class="btn btn-default btn-ghost">前へもどる</a>

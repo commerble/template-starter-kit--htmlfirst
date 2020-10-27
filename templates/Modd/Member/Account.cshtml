@@ -76,7 +76,7 @@
         @(Page.Html.TextBox("Address.ZipCode", model.Address.ZipCode, new {maxlength="7"}))
         @(Page.Html.ValidationMessage("Address.ZipCode","*"))
         <button class="btn btn-default" ic-post-to="@Href("~/Member/AccountAddress")" ic-target="#Member_Zip_Search_Result" ic-include='{"zipsearch":"zipsearch"}'>
-          検索 <i class="fa fa-spinner fa-spin ic-indicator" style="display:none"></i>
+          検索 <span class="ic-indicator" style="display:none">中</span>
         </button>
         （-で区切らず半角数字で入力し、「検索」ボタンを押して下さい。　※例：1070052）
         <div id="Member_Zip_Search_Result">
