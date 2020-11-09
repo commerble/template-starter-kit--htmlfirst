@@ -8,6 +8,9 @@
   bool IsIntercooler { get { return Page.Request.Headers.AllKeys.Any(key => key.ToLower() == "x-ic-request"); } }
 
   /// URL factories
+  string FavoriteUrl(int item) {
+    return Page.Url.RouteUrl("ModdDefault", new {controller = "Member", action = "CreateFavorite", item});
+  }
   string CartInUrl(int item, int? qty = null) {
     return Page.Url.RouteUrl("ModdDefault", new {controller = "Order", action = "Cart", item, qty});
   }
