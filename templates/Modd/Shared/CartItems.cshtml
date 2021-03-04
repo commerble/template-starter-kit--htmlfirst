@@ -7,9 +7,9 @@
 	<tr>
 		<td>商品番号</td>
 		<td>商品名</td>
-		<td>発売日</td>
 		<td>販売価格<!--/必要ポイント--></td>
 		<td>数量</td>
+		<td>割引額</td>
 		<td>小計</td>
 	</tr>
 </thead>
@@ -26,6 +26,7 @@
 <tbody>
 @foreach(var item in cart.ExpandItems) {
   var productLink = !( item.OrderLineType==OrderLineType.NormalOrder || item.OrderLineType==OrderLineType.SetProductParent); 
+  var taxInfo = item.Product.SalesPattern.TaxRoundMode == TaxRoundMode.NoTaxCharge ? "(非課税)" : "(税込)";
   <tr>
 	  <td >@item.Product.ExternalId</td>
 	  <td>
@@ -37,22 +38,28 @@
       } 
       </a>
     </td>
-	  <td>@string.Format("{0:yyyy/MM/dd}", item.Product.ReleaseDate)</td>
 	  <td>@string.Format("{0:#,##0}", Page.Template.GetUnitPriceWithTax(item.Product.ProductId)) 
         @if (item.IsPointOnly){ 
           <text>ポイント</text>
         }else{ 
-          <text>円</text> @((Page.Template.GetUnitPriceWithTax(item.Product.ProductId) == item.Product.UnitPrice) ? "(非課税)" : "(税込)")
+          <text>円 @taxInfo</text>
         }
     </td>
 	  <td>
 		  <p>@item.OrderAmount</p>
 	  </td>
+	  <td>- @string.Format("{0:#,##0}",item.DiscountPrice)
+      @if (item.IsPointOnly){ 
+        <text>ポイント</text>
+      }else{ 
+        <text>円</text>
+      }
+    </td>
 	  <td>@string.Format("{0:#,##0}",item.LinePrice)
       @if (item.IsPointOnly){ 
         <text>ポイント</text>
       }else{ 
-        <text>円</text> @((Page.Template.GetUnitPriceWithTax(item.Product.ProductId) == item.Product.UnitPrice) ? "(非課税)" : "(税込)")
+        <text>円 @taxInfo</text>
       }
     </td>
   </tr>

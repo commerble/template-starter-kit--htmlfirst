@@ -44,9 +44,9 @@
 				<tr>
 					<td>商品番号</td>
 					<td>商品名</td>
-					<td>発売日</td>
 					<td>販売価格</td>
 					<td>数量</td>
+					<td>割引額</td>
 					<td>小計</td>
 					<td>&nbsp;</td>
 				</tr>
@@ -67,19 +67,19 @@
 				var stockout = cart.Errors.Any(err => err.Item.ProductId == item.ProductId && err.ErrorType == ShoppingCartErrorType.StockOut);
 				var hasError = cart.Errors.Any(err => err.Item.ProductId == item.ProductId);
 				var prefix = string.Format("Items[{0}].", cart.Items.IndexOf(item) );
+				var taxInfo = item.Product.SalesPattern.TaxRoundMode == TaxRoundMode.NoTaxCharge ? "(非課税)" : "(税込)";
 				if( (Page.Template.GetProductSalesPattern(item.Product.ProductId).MaxPurchasePerAccount ?? 0 ) > 0) {
 					isLimitPerAccount = true;
 				}
 			<tr>
 				<td>@item.Product.ExternalId</td>
 				<td><a href="#" target="_blank">@item.Product.Name</a></td>
-	  			<td>@string.Format("{0:yyyy/MM/dd}", item.Product.ReleaseDate)</td>
 				<td>
-					@PrintPrice(Page.Template.GetUnitPriceWithTax(item.Product.ProductId))
+					@string.Format("{0:#,##0}", Page.Template.GetUnitPriceWithTax(item.Product.ProductId))
 					@if (item.IsPointOnly){ 
 						<text>ポイント</text>
 					} else { 
-						@(Page.Template.GetUnitPriceWithTax(item.Product.ProductId) == item.Product.UnitPrice ? "(非課税)" : "(税込)")
+						<text>円 @taxInfo</text>
 					}
 				</td>
 				<td>
@@ -90,13 +90,20 @@
 						@Page.Html.Hidden(prefix + "ProductId", item.Product.ProductId )
 					}
 				</td>
+	  			<td>- @string.Format("{0:#,##0}",item.DiscountPrice)
+					@if (item.IsPointOnly){ 
+						<text>ポイント</text>
+					}else{ 
+						<text>円</text>
+					}
+				</td>
 				<td>
-					@PrintPrice(item.LinePrice)
+					@string.Format("{0:#,##0}",item.LinePrice)
 					@if (item.IsPointOnly) { 
 						<text>ポイント</text>
 						isPointOnlyCart = true; 
 					}else{ 
-						@(Page.Template.GetUnitPriceWithTax(item.Product.ProductId) == item.Product.UnitPrice ? "(非課税)" : "(税込)")
+						<text>円 @taxInfo</text>
 					}
 				</td>
 				<td><a href="@Page.Url.RouteUrl("ModdDefault", new { controller="Order", action="CartItemDelete", item=item.Product.ProductId} )" class="btn @(hasError ? "btn-error" : "btn-default btn-ghost")">削除</a></td>
