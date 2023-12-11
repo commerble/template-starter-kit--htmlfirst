@@ -207,7 +207,7 @@ function resolveType(name, ext) {
 }
 
 function escapeTemplate(text) {
-    return text.replace(/\{\{/g, '{ {')
+    return text.replace(/\{\{/g, '{{<"{{"}}');
 }
 
 main().catch(message => console.error(message));
